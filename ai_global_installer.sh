@@ -1142,6 +1142,11 @@ TASKS
 }
 CONFIG
 
+    # Add directories to .gitignore
+    echo ".ai-logs" >> .gitignore
+    echo ".ai-parallel" >> .gitignore
+    echo ".ai-worktrees" >> .gitignore
+
     echo "✅ Project initialized with $system!"
     echo
     echo "Next steps:"
