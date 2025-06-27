@@ -305,9 +305,11 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    local branch_name="gemini-task-$task_id"
-
+    
     cd "$worktree_path"
+
+    local branch_name
+    branch_name=$(git rev-parse --abbrev-ref HEAD)
 
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
@@ -603,9 +605,11 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    local branch_name="claude-task-$task_id"
-
+    
     cd "$worktree_path"
+
+    local branch_name
+    branch_name=$(git rev-parse --abbrev-ref HEAD)
 
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
@@ -898,9 +902,11 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    local branch_name="codex-task-$task_id"
-
+    
     cd "$worktree_path"
+
+    local branch_name
+    branch_name=$(git rev-parse --abbrev-ref HEAD)
 
     # Refresh the git index to detect changes
     git add -N .
