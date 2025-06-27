@@ -576,7 +576,7 @@ execute_task() {
         echo
 
         # Run claude with skip permissions and prompt file
-        claude --dangerously-skip-permissions "$(cat "$temp_prompt")"
+        claude --print --dangerously-skip-permissions "$full_prompt"
 
     } > "$log_file" 2>&1
 
