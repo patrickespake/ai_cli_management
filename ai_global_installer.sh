@@ -1094,22 +1094,24 @@ init_project() {
     cat > tasks.json << 'TASKS'
 {
   "project_info": {
-    "name": "My AI Project",
-    "description": "AI-powered development project",
-    "base_branch": "main"
+    "name": "Sample Medical Lab Website",
+    "description": "React-based website project for a medical laboratory specializing in blood tests with comprehensive documentation and best practices",
+    "base_branch": "master"
   },
   "tasks": [
     {
-      "id": "example-task",
-      "title": "Example Task",
-      "prompt": "Create a simple example implementation",
-      "branch_name": "feature/example-task",
-      "pr_title": "feat: Add example implementation",
-      "labels": ["feature", "ai-generated"],
-      "priority": 1,
-      "language": "python",
-      "framework": "",
-      "files_to_focus": ["src/", "docs/", "tests/", "config/"]
+      "id": "create-readme",
+      "title": "Create README.md",
+      "prompt": "Create a README.md file explaining that this will be a website project for a medical laboratory specializing in blood tests, built with React",
+      "files": [],
+      "priority": 1
+    },
+    {
+      "id": "react-best-practices",
+      "title": "React Best Practices Documentation",
+      "prompt": "Generate a markdown document explaining the best practices for developing in React",
+      "files": [],
+      "priority": 2
     }
   ]
 }
