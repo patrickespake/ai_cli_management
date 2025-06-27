@@ -1,0 +1,766 @@
+#!/bin/bash
+# ai_global_installer.sh - AI Parallel Systems Global Installer
+# Version 2.0 - English Edition (Fixed)
+# Assumes existing CLI clients: codex, claude, gemini
+
+set -euo pipefail
+
+# Global variables
+INSTALL_DIR="/opt/ai-parallel-systems"
+CONFIG_DIR="$HOME/.config/ai-parallel"
+DATA_DIR="$HOME/.local/share/ai-parallel"
+LOG_FILE="/tmp/ai-installer.log"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[INFO]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+log_success() {
+    echo -e "${GREEN}[SUCCESS]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[WARN]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+log_error() {
+    echo -e "${RED}[ERROR]${NC} $1" | tee -a "$LOG_FILE"
+}
+
+log_header() {
+    echo -e "${BLUE}$1${NC}" | tee -a "$LOG_FILE"
+}
+
+# Function to detect Linux distribution
+detect_distro() {
+    if [ -f /etc/manjaro-release ]; then
+        echo "manjaro"
+    elif [ -f /etc/ubuntu-release ] || [ -f /etc/lsb-release ]; then
+        echo "ubuntu"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    else
+        echo "unknown"
+    fi
+}
+
+# Function to verify existing CLI clients
+verify_existing_clients() {
+    log_header "=== VERIFYING EXISTING CLI CLIENTS ==="
+
+    local missing_clients=()
+
+    for client in gemini claude codex; do
+        if command -v "$client" >/dev/null 2>&1; then
+            log_success "✓ $client CLI found"
+        else
+            log_error "✗ $client CLI not found"
+            missing_clients+=("$client")
+        fi
+    done
+
+    if [ ${#missing_clients[@]} -gt 0 ]; then
+        log_error "Missing CLI clients: ${missing_clients[*]}"
+        echo
+        echo "Please install the missing CLI clients before proceeding:"
+        for client in "${missing_clients[@]}"; do
+            case $client in
+                gemini)
+                    echo "  - Gemini: Install from Google AI Studio"
+                    ;;
+                claude)
+                    echo "  - Claude: Install from Anthropic"
+                    ;;
+                codex)
+                    echo "  - Codex: Install from OpenAI"
+                    ;;
+            esac
+        done
+        exit 1
+    fi
+
+    log_success "All required CLI clients are installed"
+}
+
+# Function to install system dependencies
+install_system_dependencies() {
+    log_header "=== INSTALLING SYSTEM DEPENDENCIES ==="
+
+    local distro=$(detect_distro)
+    log_info "Detected distribution: $distro"
+
+    case $distro in
+        manjaro)
+            log_info "Installing dependencies for Manjaro..."
+            sudo pacman -Sy --noconfirm jq curl wget git python python-pip sqlite tmux screen
+            ;;
+        ubuntu|debian)
+            log_info "Installing dependencies for Ubuntu/Debian..."
+            sudo apt update
+            sudo apt install -y jq curl wget git python3 python3-pip sqlite3 tmux screen
+            ;;
+        *)
+            log_warn "Unknown distribution, attempting generic installation..."
+            # Try to install with common package managers
+            if command -v apt >/dev/null 2>&1; then
+                sudo apt update && sudo apt install -y jq curl wget git python3 python3-pip sqlite3 tmux screen
+            elif command -v pacman >/dev/null 2>&1; then
+                sudo pacman -Sy --noconfirm jq curl wget git python python-pip sqlite tmux screen
+            else
+                log_error "Could not determine package manager"
+                exit 1
+            fi
+            ;;
+    esac
+
+    log_success "System dependencies installed"
+}
+
+# Function to create directory structure
+create_directory_structure() {
+    log_header "=== CREATING DIRECTORY STRUCTURE ==="
+
+    # Create system directories
+    sudo mkdir -p "$INSTALL_DIR"/{bin,lib,templates,logs}
+    sudo chown -R "$USER:$USER" "$INSTALL_DIR"
+
+    # Create user directories
+    mkdir -p "$CONFIG_DIR"
+    mkdir -p "$DATA_DIR"/{logs,cache,backups}
+
+    log_success "Directory structure created"
+}
+
+# Function to create AI wrapper scripts
+create_ai_wrappers() {
+    log_header "=== CREATING AI WRAPPER SCRIPTS ==="
+
+    # Create ai-gemini wrapper
+    log_info "Creating ai-gemini wrapper..."
+    sudo tee /usr/local/bin/ai-gemini << 'EOF'
+#!/bin/bash
+# ai-gemini - Gemini AI wrapper for parallel execution
+# Version 2.0 - English Edition
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(pwd)"
+TASKS_FILE="$PROJECT_ROOT/tasks.json"
+
+if [ ! -f "$TASKS_FILE" ]; then
+    echo "Error: tasks.json not found in current directory"
+    echo "Use: ai-manager init gemini"
+    exit 1
+fi
+
+# Execute gemini with tasks file
+exec gemini --tasks-file "$TASKS_FILE" "$@"
+EOF
+
+    # Create ai-claude wrapper
+    log_info "Creating ai-claude wrapper..."
+    sudo tee /usr/local/bin/ai-claude << 'EOF'
+#!/bin/bash
+# ai-claude - Claude AI wrapper for parallel execution
+# Version 2.0 - English Edition
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(pwd)"
+TASKS_FILE="$PROJECT_ROOT/tasks.json"
+
+if [ ! -f "$TASKS_FILE" ]; then
+    echo "Error: tasks.json not found in current directory"
+    echo "Use: ai-manager init claude"
+    exit 1
+fi
+
+# Execute claude with tasks file
+exec claude --tasks-file "$TASKS_FILE" "$@"
+EOF
+
+    # Create ai-codex wrapper
+    log_info "Creating ai-codex wrapper..."
+    sudo tee /usr/local/bin/ai-codex << 'EOF'
+#!/bin/bash
+# ai-codex - Codex AI wrapper for parallel execution
+# Version 2.0 - English Edition
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(pwd)"
+TASKS_FILE="$PROJECT_ROOT/tasks.json"
+
+if [ ! -f "$TASKS_FILE" ]; then
+    echo "Error: tasks.json not found in current directory"
+    echo "Use: ai-manager init codex"
+    exit 1
+fi
+
+# Execute codex with tasks file
+exec codex --tasks-file "$TASKS_FILE" "$@"
+EOF
+
+    # Make all wrappers executable
+    sudo chmod +x /usr/local/bin/ai-{gemini,claude,codex}
+
+    log_success "AI wrapper scripts created"
+}
+
+# Function to create management commands
+create_management_commands() {
+    log_header "=== CREATING MANAGEMENT COMMANDS ==="
+
+    # Main ai-manager command
+    log_info "Creating ai-manager command..."
+    sudo tee /usr/local/bin/ai-manager << 'EOF'
+#!/bin/bash
+# ai-manager - Main AI Systems Manager
+# Version 2.0 - English Edition
+
+CONFIG_DIR="$HOME/.config/ai-parallel"
+DATA_DIR="$HOME/.local/share/ai-parallel"
+
+show_help() {
+    cat << 'HELP'
+AI Parallel Systems Manager - Version 2.0
+
+USAGE:
+  ai-manager <command> [options]
+
+COMMANDS:
+  init <system>     Initialize project with AI system (gemini|claude|codex)
+  status           Show system status and health
+  config           Configure API keys and settings
+  update           Update system components
+  help             Show this help message
+
+EXAMPLES:
+  ai-manager init gemini     # Initialize with Gemini (recommended)
+  ai-manager status          # Check system status
+  ai-manager config          # Configure API keys
+
+COST COMPARISON:
+  🏆 Gemini: $0.0035/1K tokens (RECOMMENDED - 85% savings)
+  ⚖️ Claude: $0.015/1K tokens
+  🔧 Codex: $0.03/1K tokens
+
+For more information, visit: https://github.com/your-repo/ai-parallel-systems
+HELP
+}
+
+init_project() {
+    local system="${1:-gemini}"
+
+    echo "Initializing AI project with $system..."
+
+    # Create tasks.json template
+    cat > tasks.json << 'TASKS'
+{
+  "project_info": {
+    "name": "My AI Project",
+    "description": "AI-powered development project",
+    "base_branch": "main"
+  },
+  "tasks": [
+    {
+      "id": "example-task",
+      "title": "Example Task",
+      "prompt": "Create a simple example implementation",
+      "branch_name": "feature/example-task",
+      "pr_title": "feat: Add example implementation",
+      "labels": ["feature", "ai-generated"],
+      "priority": 1,
+      "language": "python",
+      "framework": "",
+      "files_to_focus": ["src/", "docs/", "tests/", "config/"]
+    }
+  ]
+}
+TASKS
+
+    # Create project configuration
+    mkdir -p .ai-parallel
+    cat > .ai-parallel/config.json << 'CONFIG'
+{
+  "project": {
+    "name": "My AI Project",
+    "default_system": "gemini",
+    "max_parallel_tasks": 3,
+    "timeout_minutes": 30
+  },
+  "systems": {
+    "gemini": {
+      "enabled": true,
+      "max_tokens": 8192
+    },
+    "claude": {
+      "enabled": true,
+      "max_tokens": 4096
+    },
+    "codex": {
+      "enabled": true,
+      "max_tokens": 4096
+    }
+  }
+}
+CONFIG
+
+    echo "✅ Project initialized with $system!"
+    echo
+    echo "Next steps:"
+    echo "  1. Edit tasks.json to define your tasks"
+    echo "  2. Run: ai-$system"
+
+    if [ "$system" = "gemini" ]; then
+        echo
+        echo "🏆 Excellent choice! Gemini saves 85% vs other systems"
+    fi
+}
+
+show_status() {
+    echo "=== AI SYSTEMS STATUS ==="
+    echo
+
+    # Check CLI clients
+    echo "CLI Clients:"
+    for client in gemini claude codex; do
+        if command -v "$client" >/dev/null 2>&1; then
+            echo "  ✓ $client"
+        else
+            echo "  ✗ $client (not found)"
+        fi
+    done
+
+    echo
+    echo "System Commands:"
+    for cmd in ai-manager ai-status ai-costs ai-gemini ai-claude ai-codex; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+            echo "  ✓ $cmd"
+        else
+            echo "  ✗ $cmd (not installed)"
+        fi
+    done
+
+    echo
+    echo "Configuration:"
+    if [ -d "$CONFIG_DIR" ]; then
+        echo "  ✓ Config directory: $CONFIG_DIR"
+    else
+        echo "  ✗ Config directory missing"
+    fi
+
+    if [ -d "$DATA_DIR" ]; then
+        echo "  ✓ Data directory: $DATA_DIR"
+    else
+        echo "  ✗ Data directory missing"
+    fi
+
+    echo
+    echo "Current Project:"
+    if [ -f "tasks.json" ]; then
+        echo "  ✓ tasks.json found"
+        local task_count=$(jq '.tasks | length' tasks.json 2>/dev/null || echo "0")
+        echo "  📋 Tasks defined: $task_count"
+    else
+        echo "  ✗ No project initialized"
+        echo "    Use: ai-manager init gemini"
+    fi
+}
+
+configure_apis() {
+    echo "=== API KEYS CONFIGURATION ==="
+    echo
+    echo "This will help you configure API keys for AI systems."
+    echo "Keys will be stored securely in your system."
+    echo
+
+    # Create config directory
+    mkdir -p "$CONFIG_DIR"
+
+    local config_file="$CONFIG_DIR/api_keys.env"
+
+    echo "# AI Systems API Keys" > "$config_file"
+    echo "# Generated on $(date)" >> "$config_file"
+    echo "" >> "$config_file"
+
+    # Configure each system
+    for system in GEMINI CLAUDE CODEX; do
+        echo "Configuring $system API key..."
+        echo -n "Enter $system API key (or press Enter to skip): "
+        read -r api_key
+
+        if [ -n "$api_key" ]; then
+            echo "export ${system}_API_KEY=\"$api_key\"" >> "$config_file"
+            echo "✓ $system API key configured"
+        else
+            echo "⚠ $system API key skipped"
+        fi
+        echo
+    done
+
+    # Set secure permissions
+    chmod 600 "$config_file"
+
+    echo "✅ Configuration saved to: $config_file"
+    echo
+    echo "To load the configuration in your shell:"
+    echo "source \"$config_file\""
+    echo
+    echo "Or add to your ~/.bashrc:"
+    echo "echo 'source \"$config_file\"' >> ~/.bashrc"
+    echo
+    echo "Or load now:"
+    echo "source \"$config_file\""
+}
+
+update_system() {
+    echo "=== UPDATING SYSTEM ==="
+    echo
+
+    # Update system packages
+    local distro=$(detect_distro)
+    case $distro in
+        manjaro)
+            echo "Updating Manjaro packages..."
+            sudo pacman -Syu --noconfirm
+            ;;
+        ubuntu|debian)
+            echo "Updating Ubuntu/Debian packages..."
+            sudo apt update && sudo apt upgrade -y
+            ;;
+    esac
+
+    # Update AI wrapper scripts (re-run installer)
+    echo "Updating AI wrapper scripts..."
+    curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh | bash
+
+    echo
+    echo "✅ System updated!"
+}
+
+# Detect distribution function
+detect_distro() {
+    if [ -f /etc/manjaro-release ]; then
+        echo "manjaro"
+    elif [ -f /etc/ubuntu-release ] || [ -f /etc/lsb-release ]; then
+        echo "ubuntu"
+    elif [ -f /etc/debian_version ]; then
+        echo "debian"
+    else
+        echo "unknown"
+    fi
+}
+
+# Process commands
+case "${1:-help}" in
+    init)
+        init_project "${2:-gemini}"
+        ;;
+    status)
+        show_status
+        ;;
+    config)
+        configure_apis
+        ;;
+    update)
+        update_system
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo "Unknown command: ${1:-}"
+        echo "Use 'ai-manager help' for available commands"
+        exit 1
+        ;;
+esac
+EOF
+
+    # ai-status command
+    sudo tee /usr/local/bin/ai-status << 'EOF'
+#!/bin/bash
+# ai-status - Quick status check
+# Version 2.0 - English Edition
+
+case "${1:-}" in
+    --quick|-q)
+        echo "AI Systems Quick Status:"
+        for client in gemini claude codex; do
+            if command -v "$client" >/dev/null 2>&1; then
+                echo "✓ $client"
+            else
+                echo "✗ $client"
+            fi
+        done
+        ;;
+    *)
+        ai-manager status
+        ;;
+esac
+EOF
+
+    # ai-costs command
+    sudo tee /usr/local/bin/ai-costs << 'EOF'
+#!/bin/bash
+# ai-costs - Cost analysis tool
+# Version 2.0 - English Edition
+
+show_cost_analysis() {
+    cat << 'COSTS'
+=== AI SYSTEMS COST ANALYSIS ===
+
+PRICING (per 1K tokens):
+  🏆 Gemini:  $0.0035 (RECOMMENDED)
+  ⚖️ Claude:  $0.015
+  🔧 Codex:   $0.03
+
+COST COMPARISON (1000 tasks):
+  Gemini:  ~$21
+  Claude:  ~$90
+  Codex:   ~$180
+
+SAVINGS WITH GEMINI:
+  vs Claude: 77% savings (~$69)
+  vs Codex:  88% savings (~$159)
+
+ANNUAL PROJECTION (10K tasks):
+  Gemini:  ~$210
+  Claude:  ~$900  (329% more expensive)
+  Codex:   ~$1800 (757% more expensive)
+
+RECOMMENDATION:
+🏆 Use Gemini as primary system for maximum savings
+⚖️ Use Claude for complex reasoning tasks
+🔧 Use Codex for specialized code generation
+
+RATE LIMITS:
+  Gemini: 60 req/min
+  Claude: 30 req/min
+  Codex:  20 req/min
+COSTS
+}
+
+case "${1:-analysis}" in
+    analysis|--analysis|-a)
+        show_cost_analysis
+        ;;
+    help|--help|-h)
+        echo "ai-costs - Cost analysis tool"
+        echo "Usage: ai-costs [analysis]"
+        ;;
+    *)
+        show_cost_analysis
+        ;;
+esac
+EOF
+
+    # Make all commands executable
+    sudo chmod +x /usr/local/bin/ai-{manager,status,costs}
+
+    log_success "Management commands created"
+}
+
+# Function to configure bash completion
+configure_bash_completion() {
+    log_header "=== CONFIGURING BASH COMPLETION ==="
+
+    sudo tee /etc/bash_completion.d/ai-systems << 'EOF'
+# Bash completion for AI Systems
+# Version 2.0 - English Edition
+
+_ai_manager_complete() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+
+    case $prev in
+        ai-manager)
+            opts="init status config update help"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+        init)
+            opts="gemini claude codex"
+            COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+            return 0
+            ;;
+    esac
+}
+
+complete -F _ai_manager_complete ai-manager
+
+# Simple completion for other commands
+complete -W "analysis help" ai-costs
+complete -W "--quick" ai-status
+EOF
+
+    log_success "Bash completion configured"
+}
+
+# Function to create example tasks
+create_example_tasks() {
+    log_header "=== CREATING EXAMPLE TASKS ==="
+
+    # Gemini example
+    cat > "$INSTALL_DIR/templates/gemini_example.json" << 'EOF'
+{
+  "project_info": {
+    "name": "Gemini AI Project",
+    "description": "Cost-effective AI development with Gemini",
+    "base_branch": "main"
+  },
+  "tasks": [
+    {
+      "id": "gemini-web-app",
+      "title": "Create Modern Web Application",
+      "prompt": "Create a modern, responsive web application with the following features:\n\n1. Clean, professional UI using modern CSS frameworks\n2. Interactive components with smooth animations\n3. Mobile-first responsive design\n4. Accessibility features (ARIA labels, keyboard navigation)\n5. Performance optimizations (lazy loading, code splitting)\n6. SEO-friendly structure\n\nTechnical requirements:\n- Use semantic HTML5\n- Modern CSS (Grid, Flexbox, Custom Properties)\n- Vanilla JavaScript or lightweight framework\n- Progressive Web App features\n- Cross-browser compatibility\n\nPlease create a complete, production-ready application with proper file structure, documentation, and deployment instructions.",
+      "branch_name": "feature/gemini-web-app",
+      "pr_title": "feat: Add modern web application with Gemini AI",
+      "labels": ["feature", "web", "gemini", "frontend"],
+      "priority": 1,
+      "language": "javascript",
+      "framework": "vanilla",
+      "files_to_focus": ["src/", "public/", "styles/", "scripts/"]
+    }
+  ]
+}
+EOF
+
+    # Claude example
+    cat > "$INSTALL_DIR/templates/claude_example.json" << 'EOF'
+{
+  "project_info": {
+    "name": "Claude AI Project",
+    "description": "Complex reasoning and analysis with Claude",
+    "base_branch": "main"
+  },
+  "tasks": [
+    {
+      "id": "claude-analysis-system",
+      "title": "Advanced Data Analysis System",
+      "prompt": "Design and implement a comprehensive data analysis system with advanced reasoning capabilities:\n\n1. Data Processing Pipeline\n   - Multi-format data ingestion (CSV, JSON, XML, APIs)\n   - Data validation and cleaning algorithms\n   - Statistical analysis and pattern recognition\n   - Anomaly detection and outlier identification\n\n2. Machine Learning Integration\n   - Feature engineering and selection\n   - Model training and evaluation\n   - Hyperparameter optimization\n   - Cross-validation and performance metrics\n\n3. Visualization and Reporting\n   - Interactive dashboards\n   - Statistical charts and graphs\n   - Automated report generation\n   - Export capabilities (PDF, Excel, PowerPoint)\n\n4. Advanced Features\n   - Real-time data streaming\n   - Predictive analytics\n   - Natural language insights\n   - API endpoints for integration\n\nPlease create a robust, scalable system with comprehensive documentation, unit tests, and deployment guides.",
+      "branch_name": "feature/claude-analysis-system",
+      "pr_title": "feat: Implement advanced data analysis system with Claude AI",
+      "labels": ["feature", "analysis", "claude", "ml"],
+      "priority": 1,
+      "language": "python",
+      "framework": "pandas",
+      "files_to_focus": ["src/", "data/", "models/", "reports/"]
+    }
+  ]
+}
+EOF
+
+    # Codex example
+    cat > "$INSTALL_DIR/templates/codex_example.json" << 'EOF'
+{
+  "project_info": {
+    "name": "Codex AI Project",
+    "description": "Specialized code generation and optimization with Codex",
+    "base_branch": "main"
+  },
+  "tasks": [
+    {
+      "id": "codex-optimization-suite",
+      "title": "Performance Optimization Suite",
+      "prompt": "Create a comprehensive performance optimization suite for software applications:\n\n1. Code Analysis Tools\n   - Static code analysis for performance bottlenecks\n   - Memory usage profiling and optimization\n   - CPU usage analysis and optimization\n   - Database query optimization\n\n2. Automated Optimization\n   - Code refactoring for better performance\n   - Algorithm optimization suggestions\n   - Memory leak detection and fixes\n   - Caching strategy implementation\n\n3. Benchmarking and Testing\n   - Performance benchmark suite\n   - Load testing frameworks\n   - Stress testing tools\n   - Performance regression detection\n\n4. Monitoring and Alerting\n   - Real-time performance monitoring\n   - Performance metrics dashboard\n   - Automated alerting system\n   - Performance trend analysis\n\nImplement with best practices for code quality, maintainability, and extensibility. Include comprehensive test coverage and documentation.",
+      "branch_name": "feature/codex-optimization-suite",
+      "pr_title": "feat: Add performance optimization suite with Codex AI",
+      "labels": ["feature", "optimization", "codex", "performance"],
+      "priority": 1,
+      "language": "python",
+      "framework": "pytest",
+      "files_to_focus": ["src/", "tests/", "benchmarks/", "monitoring/"]
+    }
+  ]
+}
+EOF
+
+    log_success "Example tasks created"
+}
+
+# Main installation function
+main() {
+    echo
+    log_header "🤖 AI Parallel Systems - Global Installer"
+    log_header "Version 2.0 - English Edition"
+    log_header "Assumes existing CLI clients: codex, claude, gemini"
+    echo
+
+    # Check if running as root
+    if [ "$EUID" -eq 0 ]; then
+        log_error "Please do not run this script as root"
+        exit 1
+    fi
+
+    # Installation steps
+    verify_existing_clients
+    install_system_dependencies
+    create_directory_structure
+    create_ai_wrappers
+    create_management_commands
+    configure_bash_completion
+    create_example_tasks
+
+    # Final setup
+    log_header "=== FINAL SETUP ==="
+
+    # Add to PATH if needed
+    if ! echo "$PATH" | grep -q "/usr/local/bin"; then
+        log_warn "Adding /usr/local/bin to PATH"
+        echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+    fi
+
+    echo
+    log_success "=== INSTALLATION COMPLETED SUCCESSFULLY ==="
+    echo
+    echo "🎉 AI Parallel Systems installed successfully!"
+    echo
+    echo "📋 What was installed:"
+    echo "  ✅ AI wrapper scripts (ai-gemini, ai-claude, ai-codex)"
+    echo "  ✅ Management commands (ai-manager, ai-status, ai-costs)"
+    echo "  ✅ Directory structure and configuration"
+    echo "  ✅ Bash completion support"
+    echo "  ✅ Example task templates"
+    echo
+    echo "🚀 Quick start:"
+    echo "  1. Configure API keys: ai-manager config"
+    echo "  2. Create a project: mkdir my-project && cd my-project"
+    echo "  3. Initialize: ai-manager init gemini"
+    echo "  4. Execute: ai-gemini"
+    echo
+    echo "💡 Recommendations:"
+    echo "  🏆 Use Gemini as primary system (85% cheaper)"
+    echo "  ⚖️ Use Claude for complex reasoning"
+    echo "  🔧 Use Codex for specialized code tasks"
+    echo
+    echo "📚 Available commands:"
+    echo "  ai-manager help    - Main help"
+    echo "  ai-status          - Quick status check"
+    echo "  ai-costs           - Cost analysis"
+    echo "  ai-gemini --help   - Gemini help"
+    echo
+    echo "🔧 Next steps:"
+    echo "  1. Restart your terminal or run: source ~/.bashrc"
+    echo "  2. Configure API keys: ai-manager config"
+    echo "  3. Check status: ai-status"
+    echo
+    echo "💰 Cost savings with Gemini:"
+    echo "  - 85% cheaper than Claude/Codex"
+    echo "  - Faster execution (60 req/min)"
+    echo "  - Larger context (1M tokens)"
+    echo
+    log_success "Installation complete! Happy coding with AI! 🤖"
+}
+
+# Run main function if script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
+fi
