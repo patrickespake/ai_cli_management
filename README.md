@@ -31,18 +31,27 @@ The system is specifically designed for professional development teams, enterpri
 Get started with AI Parallel Systems in under 5 minutes:
 
 ```bash
-# 1. Download and install the system
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_en_fixed.sh | bash
+# Prerequisites: Ensure you have gemini, claude, and codex CLI clients installed
 
-# 2. Configure your API keys
+# 1. Install core system
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
+
+# 2. Install advanced commands (recommended)
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh && chmod +x ai_advanced_commands.sh && ./ai_advanced_commands.sh
+
+# 3. Install web dashboard (optional)
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh && chmod +x ai_unified_management.sh && ./ai_unified_management.sh
+
+# 4. Configure your API keys
 ai-manager config
 
-# 3. Initialize your first project
+# 5. Initialize your first project
 mkdir my-ai-project && cd my-ai-project
 ai-manager init gemini
 
-# 4. Start developing with AI assistance
-ai-quick
+# 6. Start developing with AI assistance
+ai-quick                    # Quick execution (85% cost savings)
+ai-dashboard open           # Open web interface
 ```
 
 ## 📋 Table of Contents
@@ -50,6 +59,9 @@ ai-quick
 - [Features](#-features)
 - [Architecture](#-architecture)
 - [Installation](#-installation)
+  - [Prerequisites](#prerequisites)
+  - [Installation Order](#installation-order)
+  - [Available Commands](#available-commands-after-installation)
 - [Configuration](#-configuration)
 - [Usage Guide](#-usage-guide)
 - [Cost Analysis](#-cost-analysis)
@@ -127,48 +139,147 @@ The isolation architecture provides additional security benefits by ensuring tha
 
 ## 💾 Installation
 
-### System Requirements
+### Prerequisites
 
-AI Parallel Systems is designed to run efficiently on modern Linux distributions with minimal resource requirements. The platform has been extensively tested on Ubuntu 25.04 and Manjaro Linux, with support for other major distributions through standardized installation procedures.
-
-**Minimum System Requirements**: The platform requires a Linux system with at least 4GB of RAM, 10GB of available disk space, and a modern CPU with multiple cores for optimal parallel processing performance. Network connectivity is required for AI provider API access, with recommended bandwidth of at least 10 Mbps for optimal performance.
-
-**Software Dependencies**: The system requires Git version 2.20 or later for worktree support, Python 3.8 or later for the management components, and Bash 4.0 or later for the command-line tools. Additional dependencies including curl, jq, and various Python packages are automatically installed during the setup process.
-
-**AI Client Prerequisites**: Before installing AI Parallel Systems, users must have the individual AI client tools (gemini, claude, codex) installed and configured on their system. The platform assumes these clients are available in the system PATH and properly configured with valid API credentials.
-
-### Installation Methods
-
-**Automated Installation**: The recommended installation method uses the automated installer script, which handles all system configuration, dependency installation, and initial setup procedures. The installer automatically detects the Linux distribution and applies appropriate configuration settings for optimal performance.
+**AI Client Prerequisites**: Before installing AI Parallel Systems, you must have the individual AI client tools installed and configured:
 
 ```bash
-# Download and run the automated installer
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_en_fixed.sh -o installer.sh
-chmod +x installer.sh
-./installer.sh
+# Verify AI clients are installed
+which gemini && gemini --version    # Google Gemini CLI
+which claude && claude --version    # Anthropic Claude CLI
+which codex && codex --version      # OpenAI Codex CLI
 ```
 
-**Manual Installation**: For users who prefer manual control over the installation process, detailed manual installation instructions are provided for both Ubuntu and Manjaro Linux. The manual process involves downloading individual components, configuring system settings, and setting up the necessary directory structures and permissions.
+**System Requirements**:
+- Linux system (Ubuntu 25.04, Manjaro, or other major distributions)
+- 4GB RAM minimum (8GB recommended)
+- 10GB available disk space
+- Git 2.20+ for worktree support
+- Python 3.8+ for management components
+- Bash 4.0+ for command-line tools
+- Network connectivity for AI provider API access
 
-**Enterprise Installation**: Enterprise environments may require customized installation procedures to integrate with existing security frameworks, monitoring systems, and deployment pipelines. The platform supports enterprise installation through configuration templates, automated deployment scripts, and integration with popular configuration management tools.
+### Installation Order
+
+The AI Parallel Systems consists of three installation scripts that must be run in the correct order:
+
+#### Phase 1: Core System Installation (Required)
+
+```bash
+# Download and run the core installer
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
+
+# Or download first and inspect
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
+chmod +x ai_global_installer.sh
+./ai_global_installer.sh
+```
+
+**What this installs:**
+- Core system infrastructure and directory structure
+- AI wrapper commands: `ai-gemini`, `ai-claude`, `ai-codex`
+- Management commands: `ai-manager`, `ai-status`, `ai-costs`
+- System dependencies and bash completion
+- Example task templates
+
+#### Phase 2: Advanced Commands (Optional but Recommended)
+
+```bash
+# Download and run the advanced commands installer
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh
+chmod +x ai_advanced_commands.sh
+./ai_advanced_commands.sh
+```
+
+**What this adds:**
+- Enhanced workflow commands: `ai-quick`, `ai-switch`, `ai-logs`
+- Backup system: `ai-backup`
+- Dashboard controller: `ai-dashboard`
+- Intelligent system selection strategies
+- Centralized logging and monitoring
+
+#### Phase 3: Web Management Interface (Optional)
+
+```bash
+# Download and run the web management installer
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh
+chmod +x ai_unified_management.sh
+./ai_unified_management.sh
+```
+
+**What this adds:**
+- Professional web dashboard at http://localhost:8081
+- REST API server with SQLite database
+- Real-time system monitoring and cost analysis
+- Systemd service for automatic startup
+- Python Flask backend with comprehensive features
+
+### Quick Start (All Components)
+
+```bash
+# Install all components in correct order
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh && chmod +x ai_advanced_commands.sh && ./ai_advanced_commands.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh && chmod +x ai_unified_management.sh && ./ai_unified_management.sh
+```
+
+### Available Commands After Installation
+
+After completing all installation phases, you'll have access to the following commands:
+
+#### Core Commands (Phase 1)
+- **`ai-manager`** - Main management interface
+  - `ai-manager init [system]` - Initialize project
+  - `ai-manager status` - Show system status
+  - `ai-manager config` - Configure API keys
+  - `ai-manager update` - Update system components
+- **`ai-status`** - Quick system status check
+- **`ai-costs`** - Cost analysis and comparison
+- **`ai-gemini`** - Execute tasks with Gemini (85% cost savings)
+- **`ai-claude`** - Execute tasks with Claude (complex reasoning)
+- **`ai-codex`** - Execute tasks with Codex (code optimization)
+
+#### Advanced Commands (Phase 2)
+- **`ai-quick`** - Quick execution with Gemini (cost-optimized)
+- **`ai-switch`** - Intelligent system selection
+  - `ai-switch cost-optimal` - Use most cost-effective option
+  - `ai-switch reasoning` - Use Claude for complex tasks
+  - `ai-switch code-focused` - Use Codex for code tasks
+- **`ai-logs`** - Centralized logging
+  - `ai-logs live` - Show live logs
+  - `ai-logs recent` - Show recent entries
+  - `ai-logs errors` - Show only errors
+- **`ai-dashboard`** - Web dashboard controller
+  - `ai-dashboard open` - Open in browser
+  - `ai-dashboard start/stop/restart` - Service management
+- **`ai-backup`** - Backup and restore
+  - `ai-backup create` - Create backup
+  - `ai-backup list` - List backups
+  - `ai-backup restore <name>` - Restore backup
+
+#### Web Interface (Phase 3)
+- Professional web dashboard at **http://localhost:8081**
+- REST API endpoints for automation
+- Real-time monitoring and cost tracking
+- SQLite database for metrics storage
 
 ### Post-Installation Configuration
 
-After successful installation, the system requires initial configuration to establish connections with AI providers and set up user preferences. The configuration process includes API key setup, cost monitoring preferences, security settings, and integration with existing development tools.
-
-**API Key Configuration**: Users must configure API keys for their chosen AI providers through the secure configuration management system. The platform supports multiple authentication methods and provides secure storage for sensitive credentials.
-
 ```bash
-# Configure API keys and preferences
+# 1. Configure API keys
 ai-manager config
+
+# 2. Initialize your first project
+mkdir my-ai-project && cd my-ai-project
+ai-manager init gemini
+
+# 3. Start using the system
+ai-quick                    # Quick execution with Gemini
+ai-status                   # Check system status
+ai-costs                    # View cost analysis
+ai-dashboard open           # Open web interface
 ```
 
-**System Optimization**: The platform includes optimization tools that analyze the local system environment and apply appropriate performance tuning settings. These optimizations include memory allocation, concurrent task limits, and network configuration adjustments.
-
-```bash
-# Apply system optimizations
-ai-optimize system
-```
 
 **Integration Setup**: For users who want to integrate the platform with existing development tools, additional setup procedures are available for popular IDEs, CI/CD systems, and project management tools.
 
