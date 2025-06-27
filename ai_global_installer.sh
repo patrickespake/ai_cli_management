@@ -226,28 +226,16 @@ parse_tasks() {
 # Create worktree for task
 create_worktree() {
     local task_id="$1"
-    local branch_name="gemini-task-$task_id"
-    local worktree_path="$WORKTREE_DIR/$task_id"
+    local timestamp=$(date +%s)
+    local branch_name="gemini-task-${task_id}-${timestamp}"
+    local worktree_path="$WORKTREE_DIR/${task_id}-${timestamp}"
 
-    # Capture all output (stdout and stderr) from the block
-    local output
-    output=$( {
+    {
         log_info "Creating worktree for task: $task_id"
-
-        # Remove existing worktree if it exists
-        if [ -d "$worktree_path" ]; then
-            git worktree remove "$worktree_path" --force 2>/dev/null || true
-        fi
-
-        # Remove existing branch if it exists
-        git branch -D "$branch_name" 2>/dev/null || true
 
         # Create new worktree
         git worktree add "$worktree_path" -b "$branch_name"
-    } 2>&1 )
-
-    # Print the captured output to the user's terminal (stderr)
-    echo -e "$output" >&2
+    } >&2
 
     # Return just the path on stdout
     echo "$worktree_path"
@@ -526,21 +514,20 @@ parse_tasks() {
 # Create worktree for task
 create_worktree() {
     local task_id="$1"
-    local branch_name="claude-task-$task_id"
-    local worktree_path="$WORKTREE_DIR/$task_id"
+    local timestamp=$(date +%s)
+    local branch_name="claude-task-${task_id}-${timestamp}"
+    local worktree_path="$WORKTREE_DIR/${task_id}-${timestamp}"
 
-    log_info "Preparing worktree for task: $task_id"
+    {
+        log_info "Preparing worktree for task: $task_id"
 
-    # Force remove branch and worktree dir
-    git branch -D "$branch_name" 2>/dev/null || true
-    rm -rf "$worktree_path"
-
-    # Create new worktree
-    log_info "Creating new worktree at '$worktree_path'"
-    if ! git worktree add "$worktree_path" -b "$branch_name"; then
-        log_error "Failed to create worktree for task: $task_id"
-        exit 1
-    fi
+        # Create new worktree
+        log_info "Creating new worktree at '$worktree_path'"
+        if ! git worktree add "$worktree_path" -b "$branch_name"; then
+            log_error "Failed to create worktree for task: $task_id"
+            exit 1
+        fi
+    } >&2
 
     echo "$worktree_path"
 }
@@ -823,8 +810,9 @@ parse_tasks() {
 # Create worktree for task
 create_worktree() {
     local task_id="$1"
-    local branch_name="codex-task-$task_id"
-    local worktree_path="$WORKTREE_DIR/$task_id"
+    local timestamp=$(date +%s)
+    local branch_name="codex-task-${task_id}-${timestamp}"
+    local worktree_path="$WORKTREE_DIR/${task_id}-${timestamp}"
 
     # All logging and commands inside this block are redirected to stderr
     # to prevent polluting the command substitution output.
@@ -833,20 +821,7 @@ create_worktree() {
 
         # Prune any stale worktree metadata from .git
         git worktree prune
-
-        # If the branch exists, force delete it.
-        if git rev-parse --verify --quiet "refs/heads/$branch_name"; then
-            log_warn "Branch '$branch_name' already exists. Deleting it."
-            git branch -D "$branch_name"
-        fi
         
-        # If the worktree directory still exists, remove it.
-        if [ -d "$worktree_path" ];
-        then
-            log_warn "Worktree directory '$worktree_path' already exists. Removing it."
-            git worktree remove "$worktree_path" --force 2>/dev/null || rm -rf "$worktree_path"
-        fi
-
         # Now, create the new worktree and branch.
         log_info "Creating new worktree at '$worktree_path' with branch '$branch_name'"
         if ! git worktree add "$worktree_path" -b "$branch_name"; then
