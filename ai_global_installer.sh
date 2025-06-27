@@ -160,8 +160,8 @@ if [ ! -f "$TASKS_FILE" ]; then
     exit 1
 fi
 
-# Execute gemini with tasks file
-exec gemini --tasks-file "$TASKS_FILE" "$@"
+# Execute gemini with tasks file and auto flags
+exec gemini -m gemini-2.5-pro -y --tasks-file "$TASKS_FILE" "$@"
 EOF
 
     # Create ai-claude wrapper
@@ -181,8 +181,8 @@ if [ ! -f "$TASKS_FILE" ]; then
     exit 1
 fi
 
-# Execute claude with tasks file
-exec claude --tasks-file "$TASKS_FILE" "$@"
+# Execute claude with tasks file and skip permissions
+exec claude --dangerously-skip-permissions --tasks-file "$TASKS_FILE" "$@"
 EOF
 
     # Create ai-codex wrapper
@@ -202,8 +202,8 @@ if [ ! -f "$TASKS_FILE" ]; then
     exit 1
 fi
 
-# Execute codex with tasks file
-exec codex --tasks-file "$TASKS_FILE" "$@"
+# Execute codex with tasks file and auto flags
+exec codex --auto-edit --full-auto --tasks-file "$TASKS_FILE" "$@"
 EOF
 
     # Make all wrappers executable
