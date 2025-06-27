@@ -1380,10 +1380,11 @@ EOF
     log_success "Management commands created"
 }
 
-# Function to configure bash completion
-configure_bash_completion() {
-    log_header "=== CONFIGURING BASH COMPLETION ==="
+# Function to configure shell completion
+configure_shell_completion() {
+    log_header "=== CONFIGURING SHELL COMPLETION ==="
 
+    # Configure bash completion
     sudo tee /etc/bash_completion.d/ai-systems << 'EOF'
 # Bash completion for AI Systems
 # Version 2.0 - English Edition
@@ -1415,7 +1416,66 @@ complete -W "analysis help" ai-costs
 complete -W "--quick" ai-status
 EOF
 
-    log_success "Bash completion configured"
+    # Configure zsh completion
+    sudo mkdir -p /usr/local/share/zsh/site-functions
+    sudo tee /usr/local/share/zsh/site-functions/_ai-systems << 'EOF'
+#compdef ai-manager ai-status ai-costs ai-gemini ai-claude ai-codex
+
+# Zsh completion for AI Systems
+# Version 2.0 - English Edition
+
+_ai_manager() {
+    local context state line
+    _arguments \
+        '1: :_ai_manager_commands' \
+        '2: :_ai_manager_systems'
+}
+
+_ai_manager_commands() {
+    local commands
+    commands=(
+        'init:Initialize project with AI system'
+        'status:Show system status and health'
+        'config:Configure API keys and settings'  
+        'update:Update system components'
+        'help:Show help message'
+    )
+    _describe 'commands' commands
+}
+
+_ai_manager_systems() {
+    if [[ $words[2] == "init" ]]; then
+        local systems
+        systems=(
+            'gemini:Google Gemini (recommended - 85% cheaper)'
+            'claude:Anthropic Claude (complex reasoning)'
+            'codex:OpenAI Codex (code optimization)'
+        )
+        _describe 'systems' systems
+    fi
+}
+
+_ai_status() {
+    _arguments \
+        '(--quick -q)'{--quick,-q}'[Quick status check]'
+}
+
+_ai_costs() {
+    local commands
+    commands=(
+        'analysis:Show cost analysis'
+        'help:Show help message'
+    )
+    _describe 'commands' commands
+}
+
+# Set up completions
+compdef _ai_manager ai-manager
+compdef _ai_status ai-status  
+compdef _ai_costs ai-costs
+EOF
+
+    log_success "Shell completion configured (Bash and Zsh)"
 }
 
 # Function to create example tasks
@@ -1520,7 +1580,7 @@ main() {
     create_directory_structure
     create_ai_wrappers
     create_management_commands
-    configure_bash_completion
+    configure_shell_completion
     create_example_tasks
 
     # Final setup
@@ -1529,7 +1589,13 @@ main() {
     # Add to PATH if needed
     if ! echo "$PATH" | grep -q "/usr/local/bin"; then
         log_warn "Adding /usr/local/bin to PATH"
-        echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+        if [ -f ~/.zshrc ]; then
+            echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.zshrc
+            log_info "PATH added to ~/.zshrc"
+        elif [ -f ~/.bashrc ]; then
+            echo 'export PATH="/usr/local/bin:$PATH"' >> ~/.bashrc
+            log_info "PATH added to ~/.bashrc"
+        fi
     fi
 
     echo
@@ -1562,7 +1628,11 @@ main() {
     echo "  ai-gemini --help   - Gemini help"
     echo
     echo "🔧 Next steps:"
-    echo "  1. Restart your terminal or run: source ~/.bashrc"
+    if [ -f ~/.zshrc ]; then
+        echo "  1. Restart your terminal or run: source ~/.zshrc"
+    else
+        echo "  1. Restart your terminal or run: source ~/.bashrc"
+    fi
     echo "  2. Configure API keys: ai-manager config"
     echo "  3. Check status: ai-status"
     echo

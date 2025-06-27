@@ -260,6 +260,11 @@ git config --global user.email "your@email.com"
 
 **Commands not found:**
 ```bash
+# For Zsh users
+source ~/.zshrc     # Reload shell
+hash -r            # Clear command cache
+
+# For Bash users  
 source ~/.bashrc    # Reload shell
 hash -r            # Clear command cache
 ```
