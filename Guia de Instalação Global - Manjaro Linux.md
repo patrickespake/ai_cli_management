@@ -42,7 +42,7 @@ Se algum cliente não estiver instalado, você pode continuar - os wrappers ser�
 
 ```bash
 # 1. Baixar o instalador
-curl -fsSL https://raw.githubusercontent.com/seu-repo/ai-global-installer-updated.sh -o ai-installer.sh
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh -o ai-installer.sh
 
 # 2. Tornar executável
 chmod +x ai-installer.sh
@@ -57,8 +57,8 @@ Se preferir controle total sobre o processo:
 
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/seu-repo/ai-parallel-systems.git
-cd ai-parallel-systems
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
 
 # 2. Executar instalador
 sudo ./ai_global_installer_updated.sh

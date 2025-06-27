@@ -52,10 +52,10 @@ done
 
 ```bash
 # 1. Baixar e executar instalador
-curl -fsSL https://raw.githubusercontent.com/seu-repo/ai-global-installer-updated.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
 
 # OU baixar primeiro para revisar
-curl -fsSL https://raw.githubusercontent.com/seu-repo/ai-global-installer-updated.sh -o ai-installer.sh
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh -o ai-installer.sh
 chmod +x ai-installer.sh
 sudo ./ai-installer.sh
 ```

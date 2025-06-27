@@ -70,7 +70,7 @@ ai_cli_management/
 
 ```bash
 # 1. Baixar e executar instalador
-curl -fsSL https://raw.githubusercontent.com/seu-repo/ai-global-installer-updated.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
 
 # 2. Verificar instalação
 ai-status
@@ -92,7 +92,7 @@ sudo pacman -Syu
 sudo pacman -S --needed base-devel git curl wget jq bc python python-pip nodejs npm
 
 # 2. Executar instalador
-curl -fsSL https://raw.githubusercontent.com/seu-repo/ai-global-installer-updated.sh -o ai-installer.sh
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh -o ai-installer.sh
 chmod +x ai-installer.sh
 sudo ./ai-installer.sh
 
@@ -749,10 +749,10 @@ ai-logs --help
 
 ### Recursos de Suporte
 
-- 📧 **Email:** suporte@manus-ai.com
-- 💬 **Discord:** [Servidor da Comunidade](https://discord.gg/manus-ai)
-- 📖 **Documentação:** [docs.manus-ai.com](https://docs.manus-ai.com)
-- 🐛 **Issues:** [GitHub Issues](https://github.com/manus-ai/ai-cli-management/issues)
+- 📧 **Email:** suporte@envixo.com
+- 💬 **Discord:** [Servidor da Comunidade](https://discord.gg/envixo)
+- 📖 **Documentação:** [docs.envixo.com](https://docs.envixo.com)
+- 🐛 **Issues:** [GitHub Issues](https://github.com/envixo/ai_cli_management/issues)
 
 ### Como Contribuir
 
@@ -807,4 +807,4 @@ O **AI CLI Management System** oferece uma solução completa e econômica para 
 
 ---
 
-*Developed with ❤️ by **Patrick** - Manus AI Team*
+*Developed with ❤️ by **Patrick** - Envixo Team*
