@@ -281,7 +281,7 @@ execute_task() {
         echo
         
         # Run gemini with auto-accept mode
-        printf "%b\n" "$full_prompt" | gemini -m gemini-2.5-pro -y
+        gemini -m gemini-2.5-pro -y -p "$full_prompt"
         
     } > "$log_file" 2>&1
     
