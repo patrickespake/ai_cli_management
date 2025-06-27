@@ -150,8 +150,8 @@ create_ai_logs() {
 # ai-logs - Centralized logging viewer
 # Version 2.0 - English Edition
 
-DATA_DIR="$HOME/.local/share/ai-parallel"
-LOG_DIR="$DATA_DIR/logs"
+PROJECT_ROOT="$(pwd)"
+LOG_DIR="$PROJECT_ROOT/.ai-logs"
 
 show_help() {
     cat << 'HELP'
