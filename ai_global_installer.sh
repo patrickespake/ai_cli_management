@@ -1130,15 +1130,15 @@ TASKS
   "systems": {
     "gemini": {
       "enabled": true,
-      "max_tokens": 8192
+      "max_tokens": 65535
     },
     "claude": {
       "enabled": true,
-      "max_tokens": 4096
+      "max_tokens": 64000
     },
     "codex": {
       "enabled": true,
-      "max_tokens": 4096
+      "max_tokens": 100000
     }
   }
 }
