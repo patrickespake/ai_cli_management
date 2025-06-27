@@ -251,7 +251,7 @@ execute_task() {
     local task_title
     local task_prompt
     local task_files
-    
+
     task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
     task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
@@ -259,17 +259,17 @@ execute_task() {
 
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
-    
+
     local log_file="$LOG_DIR/gemini-$task_id.log"
-    
+
     log_info "Starting task: $task_title (ID: $task_id)"
-    
+
     # Change to worktree directory
     cd "$worktree_path"
-    
+
     # Prepare full prompt
     local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
-    
+
     # Execute gemini with proper flags
     {
         echo "=== GEMINI TASK EXECUTION ==="
@@ -279,24 +279,24 @@ execute_task() {
         echo "Worktree: $worktree_path"
         echo "========================="
         echo
-        
+
         # Run gemini with auto-accept mode
         gemini -m gemini-2.5-pro -y -p "$full_prompt"
-        
+
     } > "$log_file" 2>&1
-    
+
     local exit_code=$?
-    
+
     # Return to project root
     cd "$PROJECT_ROOT"
-    
+
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
     fi
-    
+
     return $exit_code
 }
 
@@ -306,19 +306,19 @@ create_pull_request() {
     local task_title="$2"
     local worktree_path="$3"
     local branch_name="gemini-task-$task_id"
-    
+
     cd "$worktree_path"
-    
+
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
         cd "$PROJECT_ROOT"
         return
     fi
-    
+
     # Stage all changes
     git add -A
-    
+
     # Create commit
     git commit -m "feat: $task_title
 
@@ -327,10 +327,10 @@ Task ID: $task_id
 
 🤖 Generated with AI Parallel Systems
 Co-Authored-By: Gemini <noreply@google.com>"
-    
+
     # Push branch
     git push origin "$branch_name"
-    
+
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
@@ -349,12 +349,12 @@ This PR implements the requested functionality using Gemini AI.
 🤖 **Generated with AI Parallel Systems**
 
 **Co-Authored-By:** Gemini <noreply@google.com>" --head "$branch_name"
-        
+
         log_success "Pull request created for: $task_title"
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
     fi
-    
+
     cd "$PROJECT_ROOT"
 }
 
@@ -371,25 +371,25 @@ trap cleanup EXIT
 # Main execution
 main() {
     log_info "Starting Gemini AI Parallel Task Execution"
-    
+
     check_prerequisites
     setup_directories
-    
+
     local tasks
     tasks=$(parse_tasks)
-    
+
     if [ -z "$tasks" ]; then
         log_warn "No tasks found in tasks.json"
         exit 0
     fi
-    
+
     local task_count
     task_count=$(echo "$tasks" | wc -l)
     log_info "Found $task_count tasks to execute"
-    
+
     local running_jobs=0
     local pids=()
-    
+
     while IFS= read -r task_data; do
         # Wait if we've reached max parallel limit
         while [ $running_jobs -ge $MAX_PARALLEL ]; do
@@ -404,24 +404,24 @@ main() {
                 fi
             done
         done
-        
+
         # Start new task in background
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
         # Increment running_jobs safely
         running_jobs=$(( running_jobs + 1 ))
-        
+
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
     done < <(echo "$tasks")
-    
+
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
     for pid in "${pids[@]}"; do
         wait "$pid"
     done
-    
+
     log_success "All Gemini tasks completed!"
     log_info "Logs available in: $LOG_DIR"
     log_info "Worktrees available in: $WORKTREE_DIR"
@@ -542,7 +542,7 @@ execute_task() {
     local task_title
     local task_prompt
     local task_files
-    
+
     task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
     task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
@@ -550,21 +550,21 @@ execute_task() {
 
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
-    
+
     local log_file="$LOG_DIR/claude-$task_id.log"
-    
+
     log_info "Starting task: $task_title (ID: $task_id)"
-    
+
     # Change to worktree directory
     cd "$worktree_path"
-    
+
     # Prepare full prompt
     local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
-    
+
     # Create a temporary file for the prompt
     local temp_prompt="/tmp/claude-prompt-$task_id.txt"
     printf "%b\n" "$full_prompt" > "$temp_prompt"
-    
+
     # Execute claude with proper flags
     {
         echo "=== CLAUDE TASK EXECUTION ==="
@@ -574,27 +574,27 @@ execute_task() {
         echo "Worktree: $worktree_path"
         echo "========================="
         echo
-        
+
         # Run claude with skip permissions and prompt file
         claude --dangerously-skip-permissions "$(cat "$temp_prompt")"
-        
+
     } > "$log_file" 2>&1
-    
+
     local exit_code=$?
-    
+
     # Cleanup temp file
     rm -f "$temp_prompt"
-    
+
     # Return to project root
     cd "$PROJECT_ROOT"
-    
+
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
     fi
-    
+
     return $exit_code
 }
 
@@ -604,19 +604,19 @@ create_pull_request() {
     local task_title="$2"
     local worktree_path="$3"
     local branch_name="claude-task-$task_id"
-    
+
     cd "$worktree_path"
-    
+
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
         cd "$PROJECT_ROOT"
         return
     fi
-    
+
     # Stage all changes
     git add -A
-    
+
     # Create commit
     git commit -m "feat: $task_title
 
@@ -625,10 +625,10 @@ Task ID: $task_id
 
 🤖 Generated with AI Parallel Systems
 Co-Authored-By: Claude <noreply@anthropic.com>"
-    
+
     # Push branch
     git push origin "$branch_name"
-    
+
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
@@ -647,12 +647,12 @@ This PR implements the requested functionality using Claude AI.
 🤖 **Generated with AI Parallel Systems**
 
 **Co-Authored-By:** Claude <noreply@anthropic.com>" --head "$branch_name"
-        
+
         log_success "Pull request created for: $task_title"
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
     fi
-    
+
     cd "$PROJECT_ROOT"
 }
 
@@ -669,25 +669,25 @@ trap cleanup EXIT
 # Main execution
 main() {
     log_info "Starting Claude AI Parallel Task Execution"
-    
+
     check_prerequisites
     setup_directories
-    
+
     local tasks
     tasks=$(parse_tasks)
-    
+
     if [ -z "$tasks" ]; then
         log_warn "No tasks found in tasks.json"
         exit 0
     fi
-    
+
     local task_count
     task_count=$(echo "$tasks" | wc -l)
     log_info "Found $task_count tasks to execute"
-    
+
     local running_jobs=0
     local pids=()
-    
+
     while IFS= read -r task_data; do
         # Wait if we've reached max parallel limit
         while [ $running_jobs -ge $MAX_PARALLEL ]; do
@@ -701,23 +701,23 @@ main() {
                 fi
             done
         done
-        
+
         # Start new task in background
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
         running_jobs=$(( running_jobs + 1 ))
-        
+
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
     done < <(echo "$tasks")
-    
+
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
     for pid in "${pids[@]}"; do
         wait "$pid"
     done
-    
+
     log_success "All Claude tasks completed!"
     log_info "Logs available in: $LOG_DIR"
     log_info "Worktrees available in: $WORKTREE_DIR"
@@ -821,7 +821,7 @@ create_worktree() {
 
         # Prune any stale worktree metadata from .git
         git worktree prune
-        
+
         # Now, create the new worktree and branch.
         log_info "Creating new worktree at '$worktree_path' with branch '$branch_name'"
         if ! git worktree add "$worktree_path" -b "$branch_name"; then
@@ -844,7 +844,7 @@ execute_task() {
     local task_title
     local task_prompt
     local task_files
-    
+
     task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
     task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
@@ -852,17 +852,17 @@ execute_task() {
 
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
-    
+
     local log_file="$LOG_DIR/codex-$task_id.log"
-    
+
     log_info "Starting task: $task_title (ID: $task_id)"
-    
+
     # Change to worktree directory
     cd "$worktree_path"
-    
+
     # Prepare full prompt
     local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
-    
+
     # Execute codex with proper flags
     {
         echo "=== CODEX TASK EXECUTION ==="
@@ -872,24 +872,24 @@ execute_task() {
         echo "Worktree: $worktree_path"
         echo "========================="
         echo
-        
+
         # Run codex with auto-edit and full-auto flags
-        printf "%b\n" "$full_prompt" | codex --auto-edit --full-auto
-        
+        codex --full-auto --auto-edit -m o3-2025-04-16 "$full_prompt"
+
     } > "$log_file" 2>&1
-    
+
     local exit_code=$?
-    
+
     # Return to project root
     cd "$PROJECT_ROOT"
-    
+
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
     fi
-    
+
     return $exit_code
 }
 
@@ -899,19 +899,19 @@ create_pull_request() {
     local task_title="$2"
     local worktree_path="$3"
     local branch_name="codex-task-$task_id"
-    
+
     cd "$worktree_path"
-    
+
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
         cd "$PROJECT_ROOT"
         return
     fi
-    
+
     # Stage all changes
     git add -A
-    
+
     # Create commit
     git commit -m "feat: $task_title
 
@@ -920,10 +920,10 @@ Task ID: $task_id
 
 🤖 Generated with AI Parallel Systems
 Co-Authored-By: Codex <noreply@openai.com>"
-    
+
     # Push branch
     git push origin "$branch_name"
-    
+
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
@@ -942,12 +942,12 @@ This PR implements the requested functionality using Codex AI.
 🤖 **Generated with AI Parallel Systems**
 
 **Co-Authored-By:** Codex <noreply@openai.com>" --head "$branch_name"
-        
+
         log_success "Pull request created for: $task_title"
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
     fi
-    
+
     cd "$PROJECT_ROOT"
 }
 
@@ -964,25 +964,25 @@ trap cleanup EXIT
 # Main execution
 main() {
     log_info "Starting Codex AI Parallel Task Execution"
-    
+
     check_prerequisites
     setup_directories
-    
+
     local tasks
     tasks=$(parse_tasks)
-    
+
     if [ -z "$tasks" ]; then
         log_warn "No tasks found in tasks.json"
         exit 0
     fi
-    
+
     local task_count
     task_count=$(echo "$tasks" | wc -l)
     log_info "Found $task_count tasks to execute"
-    
+
     local running_jobs=0
     local pids=()
-    
+
     while IFS= read -r task_data; do
         # Wait if we've reached max parallel limit
         while [ $running_jobs -ge $MAX_PARALLEL ]; do
@@ -996,23 +996,23 @@ main() {
                 fi
             done
         done
-        
+
         # Start new task in background
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
         running_jobs=$(( running_jobs + 1 ))
-        
+
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
     done < <(echo "$tasks")
-    
+
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
     for pid in "${pids[@]}"; do
         wait "$pid"
     done
-    
+
     log_success "All Codex tasks completed!"
     log_info "Logs available in: $LOG_DIR"
     log_info "Worktrees available in: $WORKTREE_DIR"
@@ -1438,7 +1438,7 @@ _ai_manager_commands() {
     commands=(
         'init:Initialize project with AI system'
         'status:Show system status and health'
-        'config:Configure API keys and settings'  
+        'config:Configure API keys and settings'
         'update:Update system components'
         'help:Show help message'
     )
@@ -1473,7 +1473,7 @@ _ai_costs() {
 
 # Set up completions
 compdef _ai_manager ai-manager
-compdef _ai_status ai-status  
+compdef _ai_status ai-status
 compdef _ai_costs ai-costs
 EOF
 
