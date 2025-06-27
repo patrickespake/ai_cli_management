@@ -4,9 +4,9 @@
 **Enterprise-Grade AI Development Platform**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/your-repo/ai-parallel-systems)
-[![Platform](https://img.shields.io/badge/platform-Linux-green.svg)](https://github.com/your-repo/ai-parallel-systems)
-[![Tested](https://img.shields.io/badge/tested-Ubuntu%20%7C%20Manjaro-brightgreen.svg)](https://github.com/your-repo/ai-parallel-systems)
+[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/envixo/ai_cli_management)
+[![Platform](https://img.shields.io/badge/platform-Linux-green.svg)](https://github.com/envixo/ai_cli_management)
+[![Tested](https://img.shields.io/badge/tested-Ubuntu%20%7C%20Manjaro-brightgreen.svg)](https://github.com/envixo/ai_cli_management)
 
 > **Transform your development workflow with intelligent AI orchestration, achieving up to 85% cost savings while maintaining enterprise-grade reliability and performance.**
 
@@ -32,7 +32,7 @@ Get started with AI Parallel Systems in under 5 minutes:
 
 ```bash
 # 1. Download and install the system
-curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer_en_fixed.sh | bash
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_en_fixed.sh | bash
 
 # 2. Configure your API keys
 ai-manager config
@@ -143,7 +143,7 @@ AI Parallel Systems is designed to run efficiently on modern Linux distributions
 
 ```bash
 # Download and run the automated installer
-curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer_en_fixed.sh -o installer.sh
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_en_fixed.sh -o installer.sh
 chmod +x installer.sh
 ./installer.sh
 ```
@@ -600,7 +600,7 @@ The development philosophy emphasizes code quality, comprehensive testing, detai
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-repo/ai-parallel-systems.git
+git clone https://github.com/envixo/ai_cli_management.git
 cd ai-parallel-systems
 
 # Install development dependencies
@@ -657,7 +657,7 @@ The platform includes various third-party components and dependencies, each with
 
 **Built with ❤️ by the AI Parallel Systems Community**
 
-For more information, visit our [GitHub repository](https://github.com/your-repo/ai-parallel-systems) or join our [community discussions](https://github.com/your-repo/ai-parallel-systems/discussions).
+For more information, visit our [GitHub repository](https://github.com/envixo/ai_cli_management) or join our [community discussions](https://github.com/envixo/ai_cli_management/discussions).
 
 *Transform your development workflow today with intelligent AI orchestration and enterprise-grade reliability.*
 

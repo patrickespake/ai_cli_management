@@ -139,10 +139,10 @@ For users who want to get started immediately, use the automated installer optim
 
 ```bash
 # Download and run the installer with Ubuntu-specific optimizations
-curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh | bash -s -- --ubuntu
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash -s -- --ubuntu
 
 # Alternative: Download first and inspect before running
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
 chmod +x ai_global_installer.sh
 ./ai_global_installer.sh --ubuntu --verbose
 ```
@@ -167,9 +167,9 @@ exec > >(tee -a install.log) 2>&1
 echo "Starting AI Parallel Systems installation on Ubuntu 25.04 at $(date)"
 
 # Download all installation scripts
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_advanced_commands.sh
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_unified_management.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh
 
 # Verify script integrity (if checksums are provided)
 # sha256sum -c checksums.txt

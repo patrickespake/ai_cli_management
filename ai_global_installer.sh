@@ -250,7 +250,7 @@ COST COMPARISON:
   ⚖️ Claude: $0.015/1K tokens
   🔧 Codex: $0.03/1K tokens
 
-For more information, visit: https://github.com/your-repo/ai-parallel-systems
+For more information, visit: https://github.com/envixo/ai_cli_management
 HELP
 }
 
@@ -438,7 +438,7 @@ update_system() {
 
     # Update AI wrapper scripts (re-run installer)
     echo "Updating AI wrapper scripts..."
-    curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh | bash
+    curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
 
     echo
     echo "✅ System updated!"

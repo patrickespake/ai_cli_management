@@ -104,10 +104,10 @@ For users who want to get started immediately, use the automated installer:
 
 ```bash
 # Download and run the installer
-curl -fsSL https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh | bash
+curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
 
 # Or download first and inspect
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
 chmod +x ai_global_installer.sh
 ./ai_global_installer.sh
 ```
@@ -128,13 +128,13 @@ mkdir -p ~/ai-parallel-systems
 cd ~/ai-parallel-systems
 
 # Download main installer
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_global_installer.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
 
 # Download advanced commands
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_advanced_commands.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh
 
 # Download management system
-wget https://raw.githubusercontent.com/your-repo/ai-parallel-systems/main/ai_unified_management.sh
+wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh
 
 # Make scripts executable
 chmod +x *.sh
