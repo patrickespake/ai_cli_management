@@ -403,7 +403,8 @@ main() {
                 if ! kill -0 "${pids[i]}" 2>/dev/null; then
                     wait "${pids[i]}"
                     unset 'pids[i]'
-                    ((running_jobs--))
+                    # Decrement running_jobs safely (avoid non-zero exit with set -e)
+                    running_jobs=$(( running_jobs - 1 ))
                 fi
             done
         done
@@ -412,7 +413,8 @@ main() {
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
-        ((running_jobs++))
+        # Increment running_jobs safely
+        running_jobs=$(( running_jobs + 1 ))
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
@@ -700,7 +702,7 @@ main() {
                 if ! kill -0 "${pids[i]}" 2>/dev/null; then
                     wait "${pids[i]}"
                     unset 'pids[i]'
-                    ((running_jobs--))
+                    running_jobs=$(( running_jobs - 1 ))
                 fi
             done
         done
@@ -709,7 +711,7 @@ main() {
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
-        ((running_jobs++))
+        running_jobs=$(( running_jobs + 1 ))
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
@@ -990,7 +992,7 @@ main() {
                 if ! kill -0 "${pids[i]}" 2>/dev/null; then
                     wait "${pids[i]}"
                     unset 'pids[i]'
-                    ((running_jobs--))
+                    running_jobs=$(( running_jobs - 1 ))
                 fi
             done
         done
@@ -999,7 +1001,7 @@ main() {
         execute_task "$task_data" &
         local pid=$!
         pids+=("$pid")
-        ((running_jobs++))
+        running_jobs=$(( running_jobs + 1 ))
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
