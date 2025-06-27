@@ -874,7 +874,7 @@ execute_task() {
         echo
 
         # Run codex with auto-edit and full-auto flags
-        codex --full-auto --auto-edit -m o3-2025-04-16 "$full_prompt"
+        codex -q --full-auto --auto-edit -m o3-2025-04-16 "$full_prompt"
 
     } > "$log_file" 2>&1
 
