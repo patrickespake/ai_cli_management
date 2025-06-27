@@ -31,10 +31,7 @@ cd ai_cli_management
 # 3. Install advanced commands (recommended)
 ./ai_advanced_commands.sh
 
-# 4. Install web dashboard (optional)
-./ai_unified_management.sh
-
-# 5. Configure and start
+# 4. Configure and start
 ai-manager config          # Set up API keys
 mkdir my-project && cd my-project
 ai-manager init gemini     # Initialize project
@@ -89,12 +86,6 @@ gh repo clone envixo/ai_cli_management
 ./ai_advanced_commands.sh
 ```
 **Adds:** `ai-quick`, `ai-switch`, `ai-logs`, `ai-dashboard`, `ai-backup`
-
-#### 3. Web Interface (Optional)
-```bash
-./ai_unified_management.sh
-```
-**Creates:** Web dashboard at http://localhost:8081, REST API, SQLite database
 
 ## Commands Reference
 
