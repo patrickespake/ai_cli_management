@@ -103,13 +103,15 @@ python -c "import flask, flask_cors, sqlite3, requests; print('All Python depend
 For users who want to get started immediately, use the automated installer:
 
 ```bash
-# Download and run the installer
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
+# 1. Clone the repository
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
 
-# Or download first and inspect
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
-chmod +x ai_global_installer.sh
+# 2. Run the main installer
 ./ai_global_installer.sh
+
+# 3. Run the advanced commands installer
+./ai_advanced_commands.sh
 ```
 
 The quick installation will automatically detect your Manjaro system, verify existing CLI clients, install all necessary components, configure global commands, set up the web dashboard, create systemd services, and provide a summary of installed features.
@@ -133,9 +135,6 @@ wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_i
 # Download advanced commands
 wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh
 
-# Download management system
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh
-
 # Make scripts executable
 chmod +x *.sh
 ```
@@ -146,46 +145,16 @@ Execute the main installer with Manjaro-specific options:
 
 ```bash
 # Run installer with verbose output
-./ai_global_installer.sh --verbose --manjaro
-
-# The installer will:
-# - Detect Manjaro Linux automatically
-# - Verify existing CLI clients
-# - Create global command wrappers
-# - Set up directory structure
-# - Configure PATH variables
-# - Install bash completion
+./ai_global_installer.sh
 ```
 
 ### Step 3: Install Advanced Commands
 
-Set up the advanced command system:
+Set up the advanced command system, including the web dashboard:
 
 ```bash
 # Install advanced commands and utilities
 ./ai_advanced_commands.sh
-
-# This creates additional commands:
-# - ai-quick (rapid execution with Gemini)
-# - ai-switch (intelligent system selection)
-# - ai-costs (cost analysis and optimization)
-# - ai-logs (centralized logging viewer)
-# - ai-status (system health monitoring)
-```
-
-### Step 4: Deploy Management Dashboard
-
-Install the web dashboard and API system:
-
-```bash
-# Deploy management system
-./ai_unified_management.sh
-
-# This creates:
-# - Web dashboard at http://localhost:8081
-# - REST API for automation
-# - SQLite database for metrics
-# - Systemd service for auto-start
 ```
 
 ### Step 5: Configure Systemd Services

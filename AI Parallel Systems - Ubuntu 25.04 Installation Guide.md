@@ -138,13 +138,15 @@ deactivate
 For users who want to get started immediately, use the automated installer optimized for Ubuntu 25.04:
 
 ```bash
-# Download and run the installer with Ubuntu-specific optimizations
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash -s -- --ubuntu
+# 1. Clone the repository
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
 
-# Alternative: Download first and inspect before running
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
-chmod +x ai_global_installer.sh
-./ai_global_installer.sh --ubuntu --verbose
+# 2. Run the main installer
+./ai_global_installer.sh
+
+# 3. Run the advanced commands installer
+./ai_advanced_commands.sh
 ```
 
 The quick installation process will automatically detect Ubuntu 25.04 and apply appropriate optimizations, verify existing CLI clients and their configurations, install all necessary system components with Ubuntu-specific settings, configure global commands with proper PATH integration, set up the web dashboard with Ubuntu theme integration, create and enable systemd services optimized for Ubuntu, configure automatic updates using Ubuntu's package management, and provide a comprehensive summary of installed features and next steps.
@@ -169,20 +171,9 @@ echo "Starting AI Parallel Systems installation on Ubuntu 25.04 at $(date)"
 # Download all installation scripts
 wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh
 wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh
-
-# Verify script integrity (if checksums are provided)
-# sha256sum -c checksums.txt
 
 # Make all scripts executable
 chmod +x *.sh
-
-# Display system information for troubleshooting
-echo "System Information:"
-lsb_release -a
-uname -a
-free -h
-df -h
 ```
 
 ### Step 2: Execute Global Installer
@@ -191,18 +182,7 @@ Run the main installer with Ubuntu-specific configurations:
 
 ```bash
 # Execute installer with Ubuntu optimizations
-./ai_global_installer.sh --ubuntu --detailed-logging
-
-# The installer performs these actions:
-# - Detects Ubuntu 25.04 automatically
-# - Verifies system requirements and dependencies
-# - Checks for existing CLI clients
-# - Creates system-wide directory structure
-# - Installs global command wrappers
-# - Configures PATH and environment variables
-# - Sets up bash and zsh completion
-# - Creates initial configuration files
-# - Integrates with Ubuntu's package management
+./ai_global_installer.sh
 ```
 
 ### Step 3: Install Advanced Command System
@@ -211,32 +191,7 @@ Deploy the advanced command system with Ubuntu-specific enhancements:
 
 ```bash
 # Install advanced commands with Ubuntu integration
-./ai_advanced_commands.sh --ubuntu
-
-# This creates these additional commands:
-# - ai-quick: Rapid execution with Gemini (cost-optimized)
-# - ai-switch: Intelligent system selection based on task type
-# - ai-costs: Comprehensive cost analysis and optimization
-# - ai-logs: Centralized logging viewer with Ubuntu integration
-# - ai-status: System health monitoring with Ubuntu metrics
-# - ai-ubuntu: Ubuntu-specific optimization and maintenance tools
-```
-
-### Step 4: Deploy Management Dashboard
-
-Install the comprehensive web dashboard and API system:
-
-```bash
-# Deploy management system with Ubuntu optimizations
-./ai_unified_management.sh --ubuntu
-
-# This creates and configures:
-# - Professional web dashboard at http://localhost:8081
-# - REST API for automation and integration
-# - SQLite database with Ubuntu-optimized settings
-# - Systemd service with Ubuntu-specific configurations
-# - Integration with Ubuntu's logging and monitoring systems
-# - Security configurations using Ubuntu's security frameworks
+./ai_advanced_commands.sh
 ```
 
 ### Step 5: Configure System Services
