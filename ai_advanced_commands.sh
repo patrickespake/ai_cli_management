@@ -243,6 +243,52 @@ EOF
 create_ai_dashboard() {
     log_info "Creating ai-dashboard command..."
 
+    # Create dashboard directory and placeholder file
+    log_info "Creating dashboard directory and index.html..."
+    sudo mkdir -p /opt/ai-parallel-systems/dashboard
+    sudo tee /opt/ai-parallel-systems/dashboard/index.html << 'EOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Parallel Systems Dashboard</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
+        .container { text-align: center; padding: 2rem; background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        p { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 AI Parallel Systems Dashboard</h1>
+        <p>Service is running correctly.</p>
+        <p>Future updates will populate this dashboard with real-time data.</p>
+    </div>
+</body>
+</html>
+EOF
+
+    # Create systemd service file
+    log_info "Creating systemd service for ai-dashboard..."
+    sudo tee /etc/systemd/user/ai-dashboard.service << 'EOF'
+[Unit]
+Description=AI Parallel Systems Web Dashboard
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -m http.server 8081 --directory /opt/ai-parallel-systems/dashboard
+Restart=always
+
+[Install]
+WantedBy=default.target
+EOF
+
+    # Enable the service
+    systemctl --user enable ai-dashboard.service
+    log_success "ai-dashboard systemd service created and enabled"
+
     sudo tee /usr/local/bin/ai-dashboard << 'EOF'
 #!/bin/bash
 # ai-dashboard - Web dashboard controller
@@ -288,12 +334,12 @@ case "${1:-open}" in
         if systemctl --user is-active ai-dashboard >/dev/null 2>&1; then
             echo "✅ Dashboard is already running"
         else
-            systemctl --user start ai-dashboard 2>/dev/null || echo "⚠️ Service not installed yet"
+            systemctl --user start ai-dashboard
         fi
         ;;
     stop)
         echo "🛑 Stopping AI Dashboard service..."
-        systemctl --user stop ai-dashboard 2>/dev/null || echo "⚠️ Service not running"
+        systemctl --user stop ai-dashboard
         ;;
     status)
         echo "📊 AI Dashboard Status"
@@ -308,7 +354,7 @@ case "${1:-open}" in
         ;;
     restart)
         echo "🔄 Restarting AI Dashboard service..."
-        systemctl --user restart ai-dashboard 2>/dev/null || echo "⚠️ Service not installed yet"
+        systemctl --user restart ai-dashboard
         ;;
     help|--help|-h)
         show_help
