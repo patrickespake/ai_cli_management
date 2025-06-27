@@ -99,71 +99,125 @@ Esta versão foi **otimizada para usuários que já possuem os clientes de IA in
 
 > **💡 Nota:** O sistema funcionará com qualquer combinação dos clientes. Se você tem apenas um ou dois, tudo bem! Os wrappers serão criados para todos, mas apenas os disponíveis funcionarão.
 
-### 🐧 **Ubuntu 25.04 LTS**
+## 🔑 **Instalação para Repositório Privado**
 
-#### **Instalação Rápida por Nível:**
+> **⚠️ IMPORTANTE:** Este repositório é **privado**. Use o método **Git Clone** abaixo.
 
-**⭐ MÍNIMO (essencial):**
+### 🚀 **Método Recomendado: Git Clone**
+
+#### **Para Ubuntu 25.04 LTS e Manjaro Linux:**
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
+# 1. Clonar repositório (você precisa ter acesso)
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
+
+# 2. Verificar arquivos disponíveis
+ls -la *.sh
+echo "Scripts disponíveis:"
+echo "  📦 ai_global_installer_updated.sh - Base essencial (OBRIGATÓRIO)"
+echo "  📊 ai_unified_management_updated.sh - Dashboard web (RECOMENDADO)"
+echo "  🛠️ ai_advanced_commands_updated.sh - Comandos avançados (OPCIONAL)"
 ```
 
-**🏆 RECOMENDADO (com dashboard):**
+### 🎯 **Instalação por Nível de Funcionalidade:**
+
+#### **⭐ NÍVEL MÍNIMO** (Funcional - 2-3 minutos)
 ```bash
-# Base + Dashboard
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management_updated.sh | sudo bash
+# Apenas o essencial
+sudo ./ai_global_installer_updated.sh
+
+# Verificar instalação
+ai-manager --version
+ai-gemini --help
 ```
 
-**🚀 ENTERPRISE (completo):**
+#### **🏆 NÍVEL RECOMENDADO** (Completo com Dashboard - 3-5 minutos)
 ```bash
-# Instalação completa (3 scripts)
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash && \
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management_updated.sh | sudo bash && \
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands_updated.sh | sudo bash
+# Base + Dashboard Web
+sudo ./ai_global_installer_updated.sh
+sudo ./ai_unified_management_updated.sh
+
+# Verificar dashboard
+ai-dashboard start
+ai-dashboard status
 ```
 
-#### **Método Download e Revisão:**
+#### **🚀 NÍVEL ENTERPRISE** (Todos os recursos - 4-6 minutos)
 ```bash
-# 1. Baixar todos os scripts
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management_updated.sh  
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands_updated.sh
+# Instalação completa (recomendada)
+sudo ./ai_global_installer_updated.sh      # Base
+sudo ./ai_unified_management_updated.sh    # Dashboard  
+sudo ./ai_advanced_commands_updated.sh     # Avançado
 
-# 2. Revisar scripts (recomendado)
-less ai_global_installer_updated.sh
+# Verificar sistema completo
+ai-status --detailed
+ai-costs analysis
+ai-dashboard open
+```
 
-# 3. Executar conforme necessário
+### ⚡ **Instalação Automática Sequencial:**
+
+```bash
+# Clone + Instalação completa em um comando
+git clone https://github.com/envixo/ai_cli_management.git && \
+cd ai_cli_management && \
+sudo ./ai_global_installer_updated.sh && \
+sudo ./ai_unified_management_updated.sh && \
+sudo ./ai_advanced_commands_updated.sh && \
+echo "✅ Instalação completa finalizada!"
+```
+
+### 🔍 **Instalação com Revisão (Método Seguro):**
+
+```bash
+# 1. Clonar e navegar
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
+
+# 2. Revisar scripts antes de executar (recomendado)
+echo "📋 Revisando scripts de instalação..."
+less ai_global_installer_updated.sh      # Revisar base
+less ai_unified_management_updated.sh    # Revisar dashboard
+less ai_advanced_commands_updated.sh     # Revisar avançado
+
+# 3. Executar após revisão
 chmod +x *.sh
-sudo ./ai_global_installer_updated.sh      # Obrigatório
-sudo ./ai_unified_management_updated.sh    # Recomendado  
-sudo ./ai_advanced_commands_updated.sh     # Opcional
+sudo ./ai_global_installer_updated.sh      # ✅ Executar base
+sudo ./ai_unified_management_updated.sh    # ✅ Executar dashboard
+sudo ./ai_advanced_commands_updated.sh     # ✅ Executar avançado
 ```
 
-### 🔷 **Manjaro Linux**
+### 🐧 **Comandos Específicos por Distro:**
 
-#### **Instalação Rápida por Nível:**
-
-**⭐ MÍNIMO (essencial):**
+#### **Ubuntu 25.04 LTS:**
 ```bash
-sudo pacman -Syu  # Atualizar sistema
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
+# Dependências (se necessário)
+sudo apt update && sudo apt install -y git curl wget jq bc python3 python3-pip nodejs npm
+
+# Clone + Instalação
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
+sudo ./ai_global_installer_updated.sh && \
+sudo ./ai_unified_management_updated.sh && \
+sudo ./ai_advanced_commands_updated.sh
+
+# Otimização Ubuntu
+ai-ubuntu optimize
 ```
 
-**🏆 RECOMENDADO (com dashboard):**
+#### **Manjaro Linux:**
 ```bash
-# Base + Dashboard
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management_updated.sh | sudo bash
-```
-
-**🚀 ENTERPRISE (completo):**
-```bash
-# Dependências + Instalação completa
+# Dependências
+sudo pacman -Syu
 sudo pacman -S --needed base-devel git curl wget jq bc python python-pip nodejs npm
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer_updated.sh | sudo bash && \
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management_updated.sh | sudo bash && \
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands_updated.sh | sudo bash
+
+# Clone + Instalação
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
+sudo ./ai_global_installer_updated.sh && \
+sudo ./ai_unified_management_updated.sh && \
+sudo ./ai_advanced_commands_updated.sh
 ```
 
 ### 📦 **Entendendo os Componentes de Instalação**
@@ -246,41 +300,42 @@ curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_ad
 
 ---
 
-### 🔧 **Instalação Manual (Git Clone)**
+### 🛡️ **Configuração de Acesso ao Repositório Privado**
 
-Para desenvolvedores que querem controle total:
+Se você não tem acesso ao repositório, solicite acesso ao proprietário:
 
 ```bash
-# 1. Clonar repositório completo
+# Verificar se você tem acesso
 git clone https://github.com/envixo/ai_cli_management.git
-cd ai_cli_management
 
-# 2. Revisar componentes disponíveis
-ls -la *.sh
-echo "Scripts disponíveis:"
-echo "  📦 ai_global_installer_updated.sh - Base essencial"
-echo "  📊 ai_unified_management_updated.sh - Dashboard web"
-echo "  🛠️ ai_advanced_commands_updated.sh - Comandos avançados"
-
-# 3. Executar em ordem (recomendado)
-echo "Executando instalação completa..."
-sudo ./ai_global_installer_updated.sh      # Base (obrigatório)
-sudo ./ai_unified_management_updated.sh    # Dashboard (recomendado)  
-sudo ./ai_advanced_commands_updated.sh     # Avançado (opcional)
-
-# 4. Configuração final
-ai-manager config
-ai-dashboard start
+# Se der erro de permissão:
+# 1. Configure sua chave SSH no GitHub
+# 2. Ou use token de acesso pessoal
+# 3. Ou solicite acesso ao repositório
 ```
 
-#### **Instalação Automática Sequencial:**
+### 🔐 **Métodos de Autenticação:**
+
+#### **SSH (Recomendado):**
 ```bash
-# Uma linha para instalar tudo
-git clone https://github.com/envixo/ai_cli_management.git && \
-cd ai_cli_management && \
-sudo ./ai_global_installer_updated.sh && \
-sudo ./ai_unified_management_updated.sh && \
-sudo ./ai_advanced_commands_updated.sh
+# Configurar SSH key (uma vez)
+ssh-keygen -t ed25519 -C "seu-email@example.com"
+cat ~/.ssh/id_ed25519.pub  # Adicionar no GitHub
+
+# Clonar com SSH
+git clone git@github.com:envixo/ai_cli_management.git
+```
+
+#### **Token de Acesso:**
+```bash
+# Clonar com token
+git clone https://TOKEN@github.com/envixo/ai_cli_management.git
+```
+
+#### **HTTPS com Credenciais:**
+```bash
+# GitHub pedirá usuário/senha ou token
+git clone https://github.com/envixo/ai_cli_management.git
 ```
 
 ---
@@ -1061,20 +1116,47 @@ ai-gemini              # Executar tarefas
 ai-dashboard open      # Monitorar via web (http://localhost:8080)
 ```
 
-#### 💰 Economia Garantida da Versão 2.0:
+#### 💰 Vantagens do Repositório Privado + Versão 2.0:
+- **Segurança:** Código protegido e controlado
 - **Tempo:** 90% menos instalação (2-6 min vs 15-30 min)
 - **Custos:** 85% economia usando Gemini vs outros sistemas  
-- **Recursos:** 95% menos downloads (modular vs monolítico)
-- **Flexibilidade:** Instale apenas o que precisa
+- **Flexibilidade:** Instale apenas o que precisa (modular)
+- **Controle:** Acesso restrito e auditável
 - **Manutenção:** Totalmente automatizada
 
-### Próximos Passos Imediatos
+### 🎯 Próximos Passos para Repositório Privado
 
-1. **Instale** rapidamente com uma linha de comando
-2. **Configure** API keys automaticamente
-3. **Teste** com projeto exemplo
-4. **Monitore** economia em tempo real
-5. **Otimize** workflow com dashboard profissional
+1. **Clone** o repositório (precisa de acesso):
+   ```bash
+   git clone https://github.com/envixo/ai_cli_management.git
+   cd ai_cli_management
+   ```
+
+2. **Instale** rapidamente (escolha seu nível):
+   ```bash
+   # Completo (recomendado)
+   sudo ./ai_global_installer_updated.sh && \
+   sudo ./ai_unified_management_updated.sh && \
+   sudo ./ai_advanced_commands_updated.sh
+   ```
+
+3. **Configure** API keys:
+   ```bash
+   ai-manager config
+   ```
+
+4. **Teste** sistema completo:
+   ```bash
+   ai-status --detailed
+   ai-dashboard start
+   ```
+
+5. **Use** em seus projetos:
+   ```bash
+   mkdir meu-projeto && cd meu-projeto
+   ai-init gemini web
+   ai-gemini
+   ```
 
 ---
 
