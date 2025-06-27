@@ -243,9 +243,56 @@ EOF
 create_ai_dashboard() {
     log_info "Creating ai-dashboard command..."
 
-    # Create dashboard directory and placeholder file
-    log_info "Creating dashboard directory and index.html..."
+    # Create dashboard directory
     sudo mkdir -p /opt/ai-parallel-systems/dashboard
+    
+    # Create package.json for dashboard dependencies
+    sudo tee /opt/ai-parallel-systems/dashboard/package.json << 'EOF'
+{
+  "name": "ai-dashboard",
+  "version": "1.0.0",
+  "description": "Real-time dashboard for AI Parallel Systems",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "socket.io": "^4.0.0"
+  }
+}
+EOF
+
+    # Create dashboard server file
+    sudo tee /opt/ai-parallel-systems/dashboard/server.js << 'EOF'
+const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
+const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
+
+app.use(express.json());
+app.use(express.static(__dirname));
+
+// API endpoint for scripts to post updates
+app.post('/api/update', (req, res) => {
+    const { taskId, status, title, pr_url, message } = req.body;
+    io.emit('task_update', { taskId, status, title, pr_url, message });
+    res.status(200).send({ message: 'Update received' });
+});
+
+io.on('connection', (socket) => {
+    console.log('Dashboard client connected');
+    socket.on('disconnect', () => {
+        console.log('Dashboard client disconnected');
+    });
+});
+
+const PORT = 8081;
+server.listen(PORT, () => console.log(`Dashboard server listening on port ${PORT}`));
+EOF
+
+    # Create dashboard index.html
     sudo tee /opt/ai-parallel-systems/dashboard/index.html << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
@@ -254,21 +301,81 @@ create_ai_dashboard() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Parallel Systems Dashboard</title>
     <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f2f5; margin: 0; }
-        .container { text-align: center; padding: 2rem; background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #333; }
-        p { color: #666; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 1rem; }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 2rem; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        h1 { font-size: 1.5rem; margin: 0; }
+        #status-indicator { font-size: 1rem; font-weight: bold; }
+        .status-connected { color: #28a745; }
+        .status-disconnected { color: #dc3545; }
+        #task-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .task-card { background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); padding: 1.5rem; transition: all 0.3s ease; }
+        .task-card h3 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+        .task-card p { margin: 0.25rem 0; font-size: 0.9rem; color: #666; }
+        .task-status { font-weight: bold; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; font-size: 0.8rem; }
+        .status-running { background-color: #e6f7ff; color: #1890ff; }
+        .status-completed { background-color: #f6ffed; color: #52c41a; }
+        .status-failed { background-color: #fff1f0; color: #f5222d; }
+        .status-pr_created { background-color: #f9f0ff; color: #722ed1; }
+        .pr-link { display: block; margin-top: 1rem; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚀 AI Parallel Systems Dashboard</h1>
-        <p>Service is running correctly.</p>
-        <p>Future updates will populate this dashboard with real-time data.</p>
-    </div>
+    <header>
+        <h1>AI Parallel Systems Dashboard</h1>
+        <div id="status-indicator">Connecting...</div>
+    </header>
+    <main>
+        <div id="task-container"></div>
+    </main>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
 EOF
+
+    # Create dashboard client-side JS
+    sudo tee /opt/ai-parallel-systems/dashboard/dashboard.js << 'EOF'
+document.addEventListener('DOMContentLoaded', () => {
+    const socket = io();
+    const statusIndicator = document.getElementById('status-indicator');
+    const taskContainer = document.getElementById('task-container');
+
+    socket.on('connect', () => {
+        statusIndicator.textContent = 'Connected';
+        statusIndicator.className = 'status-connected';
+    });
+
+    socket.on('disconnect', () => {
+        statusIndicator.textContent = 'Disconnected';
+        statusIndicator.className = 'status-disconnected';
+    });
+
+    socket.on('task_update', (data) => {
+        let card = document.getElementById(`task-${data.taskId}`);
+        if (!card) {
+            card = document.createElement('div');
+            card.id = `task-${data.taskId}`;
+            card.className = 'task-card';
+            taskContainer.appendChild(card);
+        }
+
+        let statusHtml = `<span class="task-status status-${data.status.toLowerCase()}">${data.status}</span>`;
+        let prLinkHtml = data.pr_url ? `<a href="${data.pr_url}" target="_blank" class="pr-link">View Pull Request</a>` : '';
+
+        card.innerHTML = `
+            <h3>${data.title || data.taskId}</h3>
+            <p><strong>ID:</strong> ${data.taskId}</p>
+            <p><strong>Status:</strong> ${statusHtml}</p>
+            ${data.message ? `<p><strong>Info:</strong> ${data.message}</p>` : ''}
+            ${prLinkHtml}
+        `;
+    });
+});
+EOF
+
+    # Install dashboard dependencies
+    log_info "Installing dashboard dependencies..."
+    sudo npm install --prefix /opt/ai-parallel-systems/dashboard
 
     # Create systemd service file
     log_info "Creating systemd service for ai-dashboard..."
@@ -278,8 +385,9 @@ Description=AI Parallel Systems Web Dashboard
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/python3 -m http.server 8081 --directory /opt/ai-parallel-systems/dashboard
+ExecStart=/usr/bin/node /opt/ai-parallel-systems/dashboard/server.js
 Restart=always
+WorkingDirectory=/opt/ai-parallel-systems/dashboard
 
 [Install]
 WantedBy=default.target
@@ -347,7 +455,6 @@ case "${1:-open}" in
         if systemctl --user is-active ai-dashboard >/dev/null 2>&1; then
             echo "✅ Service: Running"
             echo "🌐 URL: http://localhost:8081"
-            echo "📊 Health: $(curl -s http://localhost:8081/api/health 2>/dev/null || echo 'Not responding')"
         else
             echo "❌ Service: Not running"
         fi

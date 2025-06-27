@@ -183,6 +183,27 @@ log_error() {
     echo -e "${RED}[GEMINI-ERROR]${NC} $1"
 }
 
+# Function to report status to dashboard
+report_status() {
+    local task_id="$1"
+    local status="$2"
+    local title="$3"
+    local pr_url="${4:-}"
+    local message="${5:-}"
+    
+    curl -s -X POST http://localhost:8081/api/update \
+    -H "Content-Type: application/json" \
+    -d @- <<CURL_DATA
+{
+    "taskId": "$task_id",
+    "status": "$status",
+    "title": "$title",
+    "pr_url": "$pr_url",
+    "message": "$message"
+}
+CURL_DATA
+}
+
 # Check prerequisites
 check_prerequisites() {
     if [ ! -f "$TASKS_FILE" ]; then
@@ -257,6 +278,8 @@ execute_task() {
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
     task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
 
+    report_status "$task_id" "RUNNING" "$task_title" "" "Starting task..."
+
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
 
@@ -292,9 +315,11 @@ execute_task() {
 
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Task finished, creating pull request..."
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
+        report_status "$task_id" "FAILED" "$task_title" "" "Task failed. See logs for details."
     fi
 
     return $exit_code
@@ -317,6 +342,7 @@ create_pull_request() {
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "No changes detected."
         cd "$PROJECT_ROOT"
         return
     fi
@@ -339,7 +365,8 @@ Co-Authored-By: Gemini <noreply@google.com>"
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
-        gh pr create --title "feat: $task_title" --body "## Task Implementation
+        local pr_url
+        pr_url=$(gh pr create --title "feat: $task_title" --body "## Task Implementation
 
 **Task ID:** $task_id
 **Implemented by:** Gemini AI
@@ -353,11 +380,13 @@ This PR implements the requested functionality using Gemini AI.
 
 🤖 **Generated with AI Parallel Systems**
 
-**Co-Authored-By:** Gemini <noreply@google.com>" --head "$branch_name"
+**Co-Authored-By:** Gemini <noreply@google.com>" --head "$branch_name")
 
         log_success "Pull request created for: $task_title"
+        report_status "$task_id" "PR_CREATED" "$task_title" "$pr_url" "Pull request created."
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Branch pushed. Install gh CLI for automatic PR creation."
     fi
 
     cd "$PROJECT_ROOT"
@@ -476,6 +505,27 @@ log_error() {
     echo -e "${RED}[CLAUDE-ERROR]${NC} $1"
 }
 
+# Function to report status to dashboard
+report_status() {
+    local task_id="$1"
+    local status="$2"
+    local title="$3"
+    local pr_url="${4:-}"
+    local message="${5:-}"
+    
+    curl -s -X POST http://localhost:8081/api/update \
+    -H "Content-Type: application/json" \
+    -d @- <<CURL_DATA
+{
+    "taskId": "$task_id",
+    "status": "$status",
+    "title": "$title",
+    "pr_url": "$pr_url",
+    "message": "$message"
+}
+CURL_DATA
+}
+
 # Check prerequisites
 check_prerequisites() {
     if [ ! -f "$TASKS_FILE" ]; then
@@ -553,6 +603,8 @@ execute_task() {
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
     task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
 
+    report_status "$task_id" "RUNNING" "$task_title" "" "Starting task..."
+
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
 
@@ -595,9 +647,11 @@ execute_task() {
 
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Task finished, creating pull request..."
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
+        report_status "$task_id" "FAILED" "$task_title" "" "Task failed. See logs for details."
     fi
 
     return $exit_code
@@ -620,6 +674,7 @@ create_pull_request() {
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "No changes detected."
         cd "$PROJECT_ROOT"
         return
     fi
@@ -642,7 +697,8 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
-        gh pr create --title "feat: $task_title" --body "## Task Implementation
+        local pr_url
+        pr_url=$(gh pr create --title "feat: $task_title" --body "## Task Implementation
 
 **Task ID:** $task_id
 **Implemented by:** Claude AI
@@ -656,11 +712,13 @@ This PR implements the requested functionality using Claude AI.
 
 🤖 **Generated with AI Parallel Systems**
 
-**Co-Authored-By:** Claude <noreply@anthropic.com>" --head "$branch_name"
+**Co-Authored-By:** Claude <noreply@anthropic.com>" --head "$branch_name")
 
         log_success "Pull request created for: $task_title"
+        report_status "$task_id" "PR_CREATED" "$task_title" "$pr_url" "Pull request created."
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Branch pushed. Install gh CLI for automatic PR creation."
     fi
 
     cd "$PROJECT_ROOT"
@@ -777,6 +835,27 @@ log_error() {
     echo -e "${RED}[CODEX-ERROR]${NC} $1"
 }
 
+# Function to report status to dashboard
+report_status() {
+    local task_id="$1"
+    local status="$2"
+    local title="$3"
+    local pr_url="${4:-}"
+    local message="${5:-}"
+    
+    curl -s -X POST http://localhost:8081/api/update \
+    -H "Content-Type: application/json" \
+    -d @- <<CURL_DATA
+{
+    "taskId": "$task_id",
+    "status": "$status",
+    "title": "$title",
+    "pr_url": "$pr_url",
+    "message": "$message"
+}
+CURL_DATA
+}
+
 # Check prerequisites
 check_prerequisites() {
     if [ ! -f "$TASKS_FILE" ]; then
@@ -860,6 +939,8 @@ execute_task() {
     task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
     task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
 
+    report_status "$task_id" "RUNNING" "$task_title" "" "Starting task..."
+
     local worktree_path
     worktree_path=$(create_worktree "$task_id")
 
@@ -895,9 +976,11 @@ execute_task() {
 
     if [ $exit_code -eq 0 ]; then
         log_success "Task completed: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Task finished, creating pull request..."
         create_pull_request "$task_id" "$task_title" "$worktree_path"
     else
         log_error "Task failed: $task_title (see $log_file)"
+        report_status "$task_id" "FAILED" "$task_title" "" "Task failed. See logs for details."
     fi
 
     return $exit_code
@@ -920,6 +1003,7 @@ create_pull_request() {
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "No changes detected."
         cd "$PROJECT_ROOT"
         return
     fi
@@ -942,7 +1026,8 @@ Co-Authored-By: Codex <noreply@openai.com>"
     # Create PR if gh CLI is available
     if command -v gh >/dev/null 2>&1; then
         cd "$PROJECT_ROOT"
-        gh pr create --title "feat: $task_title" --body "## Task Implementation
+        local pr_url
+        pr_url=$(gh pr create --title "feat: $task_title" --body "## Task Implementation
 
 **Task ID:** $task_id
 **Implemented by:** Codex AI
@@ -956,11 +1041,13 @@ This PR implements the requested functionality using Codex AI.
 
 🤖 **Generated with AI Parallel Systems**
 
-**Co-Authored-By:** Codex <noreply@openai.com>" --head "$branch_name"
+**Co-Authored-By:** Codex <noreply@openai.com>" --head "$branch_name")
 
         log_success "Pull request created for: $task_title"
+        report_status "$task_id" "PR_CREATED" "$task_title" "$pr_url" "Pull request created."
     else
         log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+        report_status "$task_id" "COMPLETED" "$task_title" "" "Branch pushed. Install gh CLI for automatic PR creation."
     fi
 
     cd "$PROJECT_ROOT"
