@@ -37,7 +37,13 @@
       "id": "testing-suite",
       "title": "Comprehensive Testing Suite",
       "prompt": "Create unit tests, integration tests, and end-to-end tests for all authentication and API functionality. Include test fixtures and proper test database setup.",
-      "files": ["tests/", "cypress/", "jest.config.js"],
+      "files": [],
+      "priority": 2
+    },
+    {
+      "id": "performance-optimization",
+      "title": "Performance Optimization",
+      "prompt": "Analyze and optimize application performance. Implement caching strategies, database query optimization, and code splitting for better performance.",
       "priority": 2
     },
     {

@@ -237,8 +237,12 @@ cp tasks_example.json tasks.json
 - `id`: Unique identifier for the task
 - `title`: Short descriptive title
 - `prompt`: Detailed instructions for the AI
-- `files`: Array of files/directories to focus on
+- `files`: (Optional) Array of files/directories to focus on
 - `priority`: Task priority (1=high, 2=medium, 3=low)
+
+**Field Options:**
+- `files` can be omitted, empty array `[]`, or contain specific paths
+- All other fields are required
 
 ## Troubleshooting
 
