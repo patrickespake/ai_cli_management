@@ -305,7 +305,7 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    
+
     cd "$worktree_path"
 
     local branch_name
@@ -608,7 +608,7 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    
+
     cd "$worktree_path"
 
     local branch_name
@@ -908,7 +908,7 @@ create_pull_request() {
     local task_id="$1"
     local task_title="$2"
     local worktree_path="$3"
-    
+
     cd "$worktree_path"
 
     local branch_name
@@ -1148,6 +1148,7 @@ CONFIG
     echo ".ai-logs" >> .gitignore
     echo ".ai-parallel" >> .gitignore
     echo ".ai-worktrees" >> .gitignore
+    echo "tasks.json" >> .gitignore
 
     echo "✅ Project initialized with $system!"
     echo
