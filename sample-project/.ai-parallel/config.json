@@ -1,0 +1,22 @@
+{
+  "project": {
+    "name": "My AI Project",
+    "default_system": "gemini",
+    "max_parallel_tasks": 3,
+    "timeout_minutes": 30
+  },
+  "systems": {
+    "gemini": {
+      "enabled": true,
+      "max_tokens": 8192
+    },
+    "claude": {
+      "enabled": true,
+      "max_tokens": 4096
+    },
+    "codex": {
+      "enabled": true,
+      "max_tokens": 4096
+    }
+  }
+}

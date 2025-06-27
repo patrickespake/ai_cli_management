@@ -1,0 +1,23 @@
+{
+  "project_info": {
+    "name": "Sample Medical Lab Website",
+    "description": "React-based website project for a medical laboratory specializing in blood tests with comprehensive documentation and best practices",
+    "base_branch": "master"
+  },
+  "tasks": [
+    {
+      "id": "create-readme",
+      "title": "Create README.md",
+      "prompt": "Create a README.md file explaining that this will be a website project for a medical laboratory specializing in blood tests, built with React",
+      "files": [],
+      "priority": 1
+    },
+    {
+      "id": "react-best-practices",
+      "title": "React Best Practices Documentation",
+      "prompt": "Generate a markdown document explaining the best practices for developing in React",
+      "files": [],
+      "priority": 2
+    }
+  ]
+}

@@ -285,7 +285,7 @@ execute_task() {
         echo
         
         # Run gemini with auto-accept mode
-        echo "$full_prompt" | gemini -m gemini-2.5-pro -y
+        printf "%b\n" "$full_prompt" | gemini -m gemini-2.5-pro -y
         
     } > "$log_file" 2>&1
     
@@ -416,7 +416,7 @@ main() {
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done <<< "$tasks"
+    done < <(echo "$tasks")
     
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
@@ -566,7 +566,7 @@ execute_task() {
     
     # Create a temporary file for the prompt
     local temp_prompt="/tmp/claude-prompt-$task_id.txt"
-    echo -e "$full_prompt" > "$temp_prompt"
+    printf "%b\n" "$full_prompt" > "$temp_prompt"
     
     # Execute claude with proper flags
     {
@@ -713,7 +713,7 @@ main() {
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done <<< "$tasks"
+    done < <(echo "$tasks")
     
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
@@ -872,7 +872,7 @@ execute_task() {
         echo
         
         # Run codex with auto-edit and full-auto flags
-        echo "$full_prompt" | codex --auto-edit --full-auto
+        printf "%b\n" "$full_prompt" | codex --auto-edit --full-auto
         
     } > "$log_file" 2>&1
     
@@ -1003,7 +1003,7 @@ main() {
         
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done <<< "$tasks"
+    done < <(echo "$tasks")
     
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
