@@ -147,63 +147,877 @@ create_ai_wrappers() {
     log_info "Creating ai-gemini wrapper..."
     sudo tee /usr/local/bin/ai-gemini << 'EOF'
 #!/bin/bash
-# ai-gemini - Gemini AI wrapper for parallel execution
+# ai-gemini - Gemini AI wrapper for parallel execution with worktree isolation
 # Version 2.0 - English Edition
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -euo pipefail
+
+# Configuration
 PROJECT_ROOT="$(pwd)"
 TASKS_FILE="$PROJECT_ROOT/tasks.json"
+WORKTREE_DIR="$PROJECT_ROOT/.ai-worktrees"
+LOG_DIR="$PROJECT_ROOT/.ai-logs"
+MAX_PARALLEL=5
 
-if [ ! -f "$TASKS_FILE" ]; then
-    echo "Error: tasks.json not found in current directory"
-    echo "Use: ai-manager init gemini"
-    exit 1
-fi
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Execute gemini with tasks file and auto flags
-exec gemini -m gemini-2.5-pro -y --tasks-file "$TASKS_FILE" "$@"
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[GEMINI-INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[GEMINI-SUCCESS]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[GEMINI-WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[GEMINI-ERROR]${NC} $1"
+}
+
+# Check prerequisites
+check_prerequisites() {
+    if [ ! -f "$TASKS_FILE" ]; then
+        log_error "tasks.json not found in current directory"
+        log_info "Use: ai-manager init gemini"
+        exit 1
+    fi
+
+    if ! command -v gemini >/dev/null 2>&1; then
+        log_error "gemini CLI not found. Please install it first."
+        exit 1
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        log_error "jq not found. Please install jq for JSON parsing."
+        exit 1
+    fi
+
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        log_error "Not in a git repository. Please initialize git first."
+        exit 1
+    fi
+}
+
+# Setup directories
+setup_directories() {
+    mkdir -p "$WORKTREE_DIR"
+    mkdir -p "$LOG_DIR"
+}
+
+# Parse tasks from JSON
+parse_tasks() {
+    if ! jq empty "$TASKS_FILE" 2>/dev/null; then
+        log_error "Invalid JSON in tasks.json"
+        exit 1
+    fi
+
+    jq -r '.tasks[] | @base64' "$TASKS_FILE"
+}
+
+# Create worktree for task
+create_worktree() {
+    local task_id="$1"
+    local branch_name="gemini-task-$task_id"
+    local worktree_path="$WORKTREE_DIR/$task_id"
+
+    log_info "Creating worktree for task: $task_id"
+
+    # Remove existing worktree if it exists
+    if [ -d "$worktree_path" ]; then
+        git worktree remove "$worktree_path" --force 2>/dev/null || true
+    fi
+
+    # Remove existing branch if it exists
+    git branch -D "$branch_name" 2>/dev/null || true
+
+    # Create new worktree
+    git worktree add "$worktree_path" -b "$branch_name"
+
+    echo "$worktree_path"
+}
+
+# Execute task in worktree
+execute_task() {
+    local task_data="$1"
+    local task_json
+    task_json=$(echo "$task_data" | base64 -d)
+
+    local task_id
+    local task_title
+    local task_prompt
+    local task_files
+    
+    task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
+    task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
+    task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
+    task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
+
+    local worktree_path
+    worktree_path=$(create_worktree "$task_id")
+    
+    local log_file="$LOG_DIR/gemini-$task_id.log"
+    
+    log_info "Starting task: $task_title (ID: $task_id)"
+    
+    # Change to worktree directory
+    cd "$worktree_path"
+    
+    # Prepare full prompt
+    local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
+    
+    # Execute gemini with proper flags
+    {
+        echo "=== GEMINI TASK EXECUTION ==="
+        echo "Task ID: $task_id"
+        echo "Title: $task_title"
+        echo "Timestamp: $(date)"
+        echo "Worktree: $worktree_path"
+        echo "========================="
+        echo
+        
+        # Run gemini with auto-accept mode
+        echo "$full_prompt" | gemini -m gemini-2.5-pro -y
+        
+    } > "$log_file" 2>&1
+    
+    local exit_code=$?
+    
+    # Return to project root
+    cd "$PROJECT_ROOT"
+    
+    if [ $exit_code -eq 0 ]; then
+        log_success "Task completed: $task_title"
+        create_pull_request "$task_id" "$task_title" "$worktree_path"
+    else
+        log_error "Task failed: $task_title (see $log_file)"
+    fi
+    
+    return $exit_code
+}
+
+# Create pull request
+create_pull_request() {
+    local task_id="$1"
+    local task_title="$2"
+    local worktree_path="$3"
+    local branch_name="gemini-task-$task_id"
+    
+    cd "$worktree_path"
+    
+    # Check if there are changes
+    if git diff --quiet && git diff --cached --quiet; then
+        log_warn "No changes detected for task: $task_title"
+        cd "$PROJECT_ROOT"
+        return
+    fi
+    
+    # Stage all changes
+    git add -A
+    
+    # Create commit
+    git commit -m "feat: $task_title
+
+Implemented by Gemini AI
+Task ID: $task_id
+
+🤖 Generated with AI Parallel Systems
+Co-Authored-By: Gemini <noreply@google.com>"
+    
+    # Push branch
+    git push origin "$branch_name"
+    
+    # Create PR if gh CLI is available
+    if command -v gh >/dev/null 2>&1; then
+        cd "$PROJECT_ROOT"
+        gh pr create --title "feat: $task_title" --body "## Task Implementation
+
+**Task ID:** $task_id
+**Implemented by:** Gemini AI
+**Branch:** $branch_name
+
+### Description
+$task_title
+
+### Changes
+This PR implements the requested functionality using Gemini AI.
+
+🤖 **Generated with AI Parallel Systems**
+
+**Co-Authored-By:** Gemini <noreply@google.com>" --head "$branch_name"
+        
+        log_success "Pull request created for: $task_title"
+    else
+        log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+    fi
+    
+    cd "$PROJECT_ROOT"
+}
+
+# Cleanup function
+cleanup() {
+    log_info "Cleaning up..."
+    # Kill any background processes
+    jobs -p | xargs -r kill 2>/dev/null || true
+}
+
+# Set trap for cleanup
+trap cleanup EXIT
+
+# Main execution
+main() {
+    log_info "Starting Gemini AI Parallel Task Execution"
+    
+    check_prerequisites
+    setup_directories
+    
+    local tasks
+    tasks=$(parse_tasks)
+    
+    if [ -z "$tasks" ]; then
+        log_warn "No tasks found in tasks.json"
+        exit 0
+    fi
+    
+    local task_count
+    task_count=$(echo "$tasks" | wc -l)
+    log_info "Found $task_count tasks to execute"
+    
+    local running_jobs=0
+    local pids=()
+    
+    while IFS= read -r task_data; do
+        # Wait if we've reached max parallel limit
+        while [ $running_jobs -ge $MAX_PARALLEL ]; do
+            sleep 2
+            # Check for completed jobs
+            for i in "${!pids[@]}"; do
+                if ! kill -0 "${pids[i]}" 2>/dev/null; then
+                    wait "${pids[i]}"
+                    unset 'pids[i]'
+                    ((running_jobs--))
+                fi
+            done
+        done
+        
+        # Start new task in background
+        execute_task "$task_data" &
+        local pid=$!
+        pids+=("$pid")
+        ((running_jobs++))
+        
+        log_info "Started task (PID: $pid), running jobs: $running_jobs"
+        sleep 1
+    done <<< "$tasks"
+    
+    # Wait for all remaining jobs
+    log_info "Waiting for all tasks to complete..."
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+    
+    log_success "All Gemini tasks completed!"
+    log_info "Logs available in: $LOG_DIR"
+    log_info "Worktrees available in: $WORKTREE_DIR"
+}
+
+# Execute main function
+main "$@"
 EOF
 
     # Create ai-claude wrapper
     log_info "Creating ai-claude wrapper..."
     sudo tee /usr/local/bin/ai-claude << 'EOF'
 #!/bin/bash
-# ai-claude - Claude AI wrapper for parallel execution
+# ai-claude - Claude AI wrapper for parallel execution with worktree isolation
 # Version 2.0 - English Edition
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -euo pipefail
+
+# Configuration
 PROJECT_ROOT="$(pwd)"
 TASKS_FILE="$PROJECT_ROOT/tasks.json"
+WORKTREE_DIR="$PROJECT_ROOT/.ai-worktrees"
+LOG_DIR="$PROJECT_ROOT/.ai-logs"
+MAX_PARALLEL=5
 
-if [ ! -f "$TASKS_FILE" ]; then
-    echo "Error: tasks.json not found in current directory"
-    echo "Use: ai-manager init claude"
-    exit 1
-fi
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Execute claude with tasks file and skip permissions
-exec claude --dangerously-skip-permissions --tasks-file "$TASKS_FILE" "$@"
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[CLAUDE-INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[CLAUDE-SUCCESS]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[CLAUDE-WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[CLAUDE-ERROR]${NC} $1"
+}
+
+# Check prerequisites
+check_prerequisites() {
+    if [ ! -f "$TASKS_FILE" ]; then
+        log_error "tasks.json not found in current directory"
+        log_info "Use: ai-manager init claude"
+        exit 1
+    fi
+
+    if ! command -v claude >/dev/null 2>&1; then
+        log_error "claude CLI not found. Please install it first."
+        exit 1
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        log_error "jq not found. Please install jq for JSON parsing."
+        exit 1
+    fi
+
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        log_error "Not in a git repository. Please initialize git first."
+        exit 1
+    fi
+}
+
+# Setup directories
+setup_directories() {
+    mkdir -p "$WORKTREE_DIR"
+    mkdir -p "$LOG_DIR"
+}
+
+# Parse tasks from JSON
+parse_tasks() {
+    if ! jq empty "$TASKS_FILE" 2>/dev/null; then
+        log_error "Invalid JSON in tasks.json"
+        exit 1
+    fi
+
+    jq -r '.tasks[] | @base64' "$TASKS_FILE"
+}
+
+# Create worktree for task
+create_worktree() {
+    local task_id="$1"
+    local branch_name="claude-task-$task_id"
+    local worktree_path="$WORKTREE_DIR/$task_id"
+
+    log_info "Creating worktree for task: $task_id"
+
+    # Remove existing worktree if it exists
+    if [ -d "$worktree_path" ]; then
+        git worktree remove "$worktree_path" --force 2>/dev/null || true
+    fi
+
+    # Remove existing branch if it exists
+    git branch -D "$branch_name" 2>/dev/null || true
+
+    # Create new worktree
+    git worktree add "$worktree_path" -b "$branch_name"
+
+    echo "$worktree_path"
+}
+
+# Execute task in worktree
+execute_task() {
+    local task_data="$1"
+    local task_json
+    task_json=$(echo "$task_data" | base64 -d)
+
+    local task_id
+    local task_title
+    local task_prompt
+    local task_files
+    
+    task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
+    task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
+    task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
+    task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
+
+    local worktree_path
+    worktree_path=$(create_worktree "$task_id")
+    
+    local log_file="$LOG_DIR/claude-$task_id.log"
+    
+    log_info "Starting task: $task_title (ID: $task_id)"
+    
+    # Change to worktree directory
+    cd "$worktree_path"
+    
+    # Prepare full prompt
+    local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
+    
+    # Create a temporary file for the prompt
+    local temp_prompt="/tmp/claude-prompt-$task_id.txt"
+    echo -e "$full_prompt" > "$temp_prompt"
+    
+    # Execute claude with proper flags
+    {
+        echo "=== CLAUDE TASK EXECUTION ==="
+        echo "Task ID: $task_id"
+        echo "Title: $task_title"
+        echo "Timestamp: $(date)"
+        echo "Worktree: $worktree_path"
+        echo "========================="
+        echo
+        
+        # Run claude with skip permissions and prompt file
+        claude --dangerously-skip-permissions "$(cat "$temp_prompt")"
+        
+    } > "$log_file" 2>&1
+    
+    local exit_code=$?
+    
+    # Cleanup temp file
+    rm -f "$temp_prompt"
+    
+    # Return to project root
+    cd "$PROJECT_ROOT"
+    
+    if [ $exit_code -eq 0 ]; then
+        log_success "Task completed: $task_title"
+        create_pull_request "$task_id" "$task_title" "$worktree_path"
+    else
+        log_error "Task failed: $task_title (see $log_file)"
+    fi
+    
+    return $exit_code
+}
+
+# Create pull request
+create_pull_request() {
+    local task_id="$1"
+    local task_title="$2"
+    local worktree_path="$3"
+    local branch_name="claude-task-$task_id"
+    
+    cd "$worktree_path"
+    
+    # Check if there are changes
+    if git diff --quiet && git diff --cached --quiet; then
+        log_warn "No changes detected for task: $task_title"
+        cd "$PROJECT_ROOT"
+        return
+    fi
+    
+    # Stage all changes
+    git add -A
+    
+    # Create commit
+    git commit -m "feat: $task_title
+
+Implemented by Claude AI
+Task ID: $task_id
+
+🤖 Generated with AI Parallel Systems
+Co-Authored-By: Claude <noreply@anthropic.com>"
+    
+    # Push branch
+    git push origin "$branch_name"
+    
+    # Create PR if gh CLI is available
+    if command -v gh >/dev/null 2>&1; then
+        cd "$PROJECT_ROOT"
+        gh pr create --title "feat: $task_title" --body "## Task Implementation
+
+**Task ID:** $task_id
+**Implemented by:** Claude AI
+**Branch:** $branch_name
+
+### Description
+$task_title
+
+### Changes
+This PR implements the requested functionality using Claude AI.
+
+🤖 **Generated with AI Parallel Systems**
+
+**Co-Authored-By:** Claude <noreply@anthropic.com>" --head "$branch_name"
+        
+        log_success "Pull request created for: $task_title"
+    else
+        log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+    fi
+    
+    cd "$PROJECT_ROOT"
+}
+
+# Cleanup function
+cleanup() {
+    log_info "Cleaning up..."
+    # Kill any background processes
+    jobs -p | xargs -r kill 2>/dev/null || true
+}
+
+# Set trap for cleanup
+trap cleanup EXIT
+
+# Main execution
+main() {
+    log_info "Starting Claude AI Parallel Task Execution"
+    
+    check_prerequisites
+    setup_directories
+    
+    local tasks
+    tasks=$(parse_tasks)
+    
+    if [ -z "$tasks" ]; then
+        log_warn "No tasks found in tasks.json"
+        exit 0
+    fi
+    
+    local task_count
+    task_count=$(echo "$tasks" | wc -l)
+    log_info "Found $task_count tasks to execute"
+    
+    local running_jobs=0
+    local pids=()
+    
+    while IFS= read -r task_data; do
+        # Wait if we've reached max parallel limit
+        while [ $running_jobs -ge $MAX_PARALLEL ]; do
+            sleep 2
+            # Check for completed jobs
+            for i in "${!pids[@]}"; do
+                if ! kill -0 "${pids[i]}" 2>/dev/null; then
+                    wait "${pids[i]}"
+                    unset 'pids[i]'
+                    ((running_jobs--))
+                fi
+            done
+        done
+        
+        # Start new task in background
+        execute_task "$task_data" &
+        local pid=$!
+        pids+=("$pid")
+        ((running_jobs++))
+        
+        log_info "Started task (PID: $pid), running jobs: $running_jobs"
+        sleep 1
+    done <<< "$tasks"
+    
+    # Wait for all remaining jobs
+    log_info "Waiting for all tasks to complete..."
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+    
+    log_success "All Claude tasks completed!"
+    log_info "Logs available in: $LOG_DIR"
+    log_info "Worktrees available in: $WORKTREE_DIR"
+}
+
+# Execute main function
+main "$@"
 EOF
 
     # Create ai-codex wrapper
     log_info "Creating ai-codex wrapper..."
     sudo tee /usr/local/bin/ai-codex << 'EOF'
 #!/bin/bash
-# ai-codex - Codex AI wrapper for parallel execution
+# ai-codex - Codex AI wrapper for parallel execution with worktree isolation
 # Version 2.0 - English Edition
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+set -euo pipefail
+
+# Configuration
 PROJECT_ROOT="$(pwd)"
 TASKS_FILE="$PROJECT_ROOT/tasks.json"
+WORKTREE_DIR="$PROJECT_ROOT/.ai-worktrees"
+LOG_DIR="$PROJECT_ROOT/.ai-logs"
+MAX_PARALLEL=5
 
-if [ ! -f "$TASKS_FILE" ]; then
-    echo "Error: tasks.json not found in current directory"
-    echo "Use: ai-manager init codex"
-    exit 1
-fi
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-# Execute codex with tasks file and auto flags
-exec codex --auto-edit --full-auto --tasks-file "$TASKS_FILE" "$@"
+# Logging functions
+log_info() {
+    echo -e "${BLUE}[CODEX-INFO]${NC} $1"
+}
+
+log_success() {
+    echo -e "${GREEN}[CODEX-SUCCESS]${NC} $1"
+}
+
+log_warn() {
+    echo -e "${YELLOW}[CODEX-WARN]${NC} $1"
+}
+
+log_error() {
+    echo -e "${RED}[CODEX-ERROR]${NC} $1"
+}
+
+# Check prerequisites
+check_prerequisites() {
+    if [ ! -f "$TASKS_FILE" ]; then
+        log_error "tasks.json not found in current directory"
+        log_info "Use: ai-manager init codex"
+        exit 1
+    fi
+
+    if ! command -v codex >/dev/null 2>&1; then
+        log_error "codex CLI not found. Please install it first."
+        exit 1
+    fi
+
+    if ! command -v jq >/dev/null 2>&1; then
+        log_error "jq not found. Please install jq for JSON parsing."
+        exit 1
+    fi
+
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        log_error "Not in a git repository. Please initialize git first."
+        exit 1
+    fi
+}
+
+# Setup directories
+setup_directories() {
+    mkdir -p "$WORKTREE_DIR"
+    mkdir -p "$LOG_DIR"
+}
+
+# Parse tasks from JSON
+parse_tasks() {
+    if ! jq empty "$TASKS_FILE" 2>/dev/null; then
+        log_error "Invalid JSON in tasks.json"
+        exit 1
+    fi
+
+    jq -r '.tasks[] | @base64' "$TASKS_FILE"
+}
+
+# Create worktree for task
+create_worktree() {
+    local task_id="$1"
+    local branch_name="codex-task-$task_id"
+    local worktree_path="$WORKTREE_DIR/$task_id"
+
+    log_info "Creating worktree for task: $task_id"
+
+    # Remove existing worktree if it exists
+    if [ -d "$worktree_path" ]; then
+        git worktree remove "$worktree_path" --force 2>/dev/null || true
+    fi
+
+    # Remove existing branch if it exists
+    git branch -D "$branch_name" 2>/dev/null || true
+
+    # Create new worktree
+    git worktree add "$worktree_path" -b "$branch_name"
+
+    echo "$worktree_path"
+}
+
+# Execute task in worktree
+execute_task() {
+    local task_data="$1"
+    local task_json
+    task_json=$(echo "$task_data" | base64 -d)
+
+    local task_id
+    local task_title
+    local task_prompt
+    local task_files
+    
+    task_id=$(echo "$task_json" | jq -r '.id // "unknown"')
+    task_title=$(echo "$task_json" | jq -r '.title // "Untitled Task"')
+    task_prompt=$(echo "$task_json" | jq -r '.prompt // .description // "No description provided"')
+    task_files=$(echo "$task_json" | jq -r '.files[]? // empty' | tr '\n' ' ')
+
+    local worktree_path
+    worktree_path=$(create_worktree "$task_id")
+    
+    local log_file="$LOG_DIR/codex-$task_id.log"
+    
+    log_info "Starting task: $task_title (ID: $task_id)"
+    
+    # Change to worktree directory
+    cd "$worktree_path"
+    
+    # Prepare full prompt
+    local full_prompt="Task: $task_title\n\nDescription: $task_prompt\n\nFiles to focus on: $task_files\n\nPlease implement this task completely. Make all necessary changes to achieve the goal."
+    
+    # Execute codex with proper flags
+    {
+        echo "=== CODEX TASK EXECUTION ==="
+        echo "Task ID: $task_id"
+        echo "Title: $task_title"
+        echo "Timestamp: $(date)"
+        echo "Worktree: $worktree_path"
+        echo "========================="
+        echo
+        
+        # Run codex with auto-edit and full-auto flags
+        echo "$full_prompt" | codex --auto-edit --full-auto
+        
+    } > "$log_file" 2>&1
+    
+    local exit_code=$?
+    
+    # Return to project root
+    cd "$PROJECT_ROOT"
+    
+    if [ $exit_code -eq 0 ]; then
+        log_success "Task completed: $task_title"
+        create_pull_request "$task_id" "$task_title" "$worktree_path"
+    else
+        log_error "Task failed: $task_title (see $log_file)"
+    fi
+    
+    return $exit_code
+}
+
+# Create pull request
+create_pull_request() {
+    local task_id="$1"
+    local task_title="$2"
+    local worktree_path="$3"
+    local branch_name="codex-task-$task_id"
+    
+    cd "$worktree_path"
+    
+    # Check if there are changes
+    if git diff --quiet && git diff --cached --quiet; then
+        log_warn "No changes detected for task: $task_title"
+        cd "$PROJECT_ROOT"
+        return
+    fi
+    
+    # Stage all changes
+    git add -A
+    
+    # Create commit
+    git commit -m "feat: $task_title
+
+Implemented by Codex AI
+Task ID: $task_id
+
+🤖 Generated with AI Parallel Systems
+Co-Authored-By: Codex <noreply@openai.com>"
+    
+    # Push branch
+    git push origin "$branch_name"
+    
+    # Create PR if gh CLI is available
+    if command -v gh >/dev/null 2>&1; then
+        cd "$PROJECT_ROOT"
+        gh pr create --title "feat: $task_title" --body "## Task Implementation
+
+**Task ID:** $task_id
+**Implemented by:** Codex AI
+**Branch:** $branch_name
+
+### Description
+$task_title
+
+### Changes
+This PR implements the requested functionality using Codex AI.
+
+🤖 **Generated with AI Parallel Systems**
+
+**Co-Authored-By:** Codex <noreply@openai.com>" --head "$branch_name"
+        
+        log_success "Pull request created for: $task_title"
+    else
+        log_info "Branch pushed: $branch_name (install gh CLI for automatic PR creation)"
+    fi
+    
+    cd "$PROJECT_ROOT"
+}
+
+# Cleanup function
+cleanup() {
+    log_info "Cleaning up..."
+    # Kill any background processes
+    jobs -p | xargs -r kill 2>/dev/null || true
+}
+
+# Set trap for cleanup
+trap cleanup EXIT
+
+# Main execution
+main() {
+    log_info "Starting Codex AI Parallel Task Execution"
+    
+    check_prerequisites
+    setup_directories
+    
+    local tasks
+    tasks=$(parse_tasks)
+    
+    if [ -z "$tasks" ]; then
+        log_warn "No tasks found in tasks.json"
+        exit 0
+    fi
+    
+    local task_count
+    task_count=$(echo "$tasks" | wc -l)
+    log_info "Found $task_count tasks to execute"
+    
+    local running_jobs=0
+    local pids=()
+    
+    while IFS= read -r task_data; do
+        # Wait if we've reached max parallel limit
+        while [ $running_jobs -ge $MAX_PARALLEL ]; do
+            sleep 2
+            # Check for completed jobs
+            for i in "${!pids[@]}"; do
+                if ! kill -0 "${pids[i]}" 2>/dev/null; then
+                    wait "${pids[i]}"
+                    unset 'pids[i]'
+                    ((running_jobs--))
+                fi
+            done
+        done
+        
+        # Start new task in background
+        execute_task "$task_data" &
+        local pid=$!
+        pids+=("$pid")
+        ((running_jobs++))
+        
+        log_info "Started task (PID: $pid), running jobs: $running_jobs"
+        sleep 1
+    done <<< "$tasks"
+    
+    # Wait for all remaining jobs
+    log_info "Waiting for all tasks to complete..."
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+    
+    log_success "All Codex tasks completed!"
+    log_info "Logs available in: $LOG_DIR"
+    log_info "Worktrees available in: $WORKTREE_DIR"
+}
+
+# Execute main function
+main "$@"
 EOF
 
     # Make all wrappers executable

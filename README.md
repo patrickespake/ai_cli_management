@@ -127,16 +127,24 @@ gh repo clone envixo/ai_cli_management
 cd my-project
 ai-manager init gemini
 
-# 2. Execute AI tasks
-ai-quick                    # Quick execution with Gemini
-ai-claude                   # Use Claude for complex reasoning
-ai-codex                    # Use Codex for code optimization
+# 2. Create or copy tasks.json
+cp tasks_example.json tasks.json
+# Edit tasks.json with your specific tasks
 
-# 3. Monitor and manage
+# 3. Execute AI tasks in parallel
+ai-gemini                   # Execute all tasks with Gemini (85% cheaper)
+ai-claude                   # Execute all tasks with Claude (complex reasoning) 
+ai-codex                    # Execute all tasks with Codex (code optimization)
+
+# 4. Monitor execution
 ai-status                   # Check system status
-ai-costs                    # View cost analysis
 ai-logs live                # Watch logs in real-time
 ai-dashboard open           # Open web interface
+
+# 5. Check results
+# Each AI creates separate branches and PRs for each task
+# Check .ai-worktrees/ for isolated work directories
+# Check .ai-logs/ for execution logs
 ```
 
 ### Smart AI Selection
@@ -199,23 +207,38 @@ ai-manager config
 ```
 
 ### Project Configuration
+
+Create a `tasks.json` file in your project directory:
+
 ```bash
-# Edit tasks.json in your project directory
+# Copy example tasks file
+cp tasks_example.json tasks.json
+
+# Or create your own tasks.json
 {
   "project_info": {
     "name": "My Project",
+    "description": "Project description",
     "base_branch": "main"
   },
   "tasks": [
     {
-      "id": "example-task",
-      "title": "Example Task", 
-      "prompt": "Create a simple example",
+      "id": "unique-task-id",
+      "title": "Task Title",
+      "prompt": "Detailed description of what to implement",
+      "files": ["src/", "tests/"],
       "priority": 1
     }
   ]
 }
 ```
+
+**Task Structure:**
+- `id`: Unique identifier for the task
+- `title`: Short descriptive title
+- `prompt`: Detailed instructions for the AI
+- `files`: Array of files/directories to focus on
+- `priority`: Task priority (1=high, 2=medium, 3=low)
 
 ## Troubleshooting
 
