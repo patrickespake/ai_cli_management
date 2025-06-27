@@ -229,19 +229,27 @@ create_worktree() {
     local branch_name="gemini-task-$task_id"
     local worktree_path="$WORKTREE_DIR/$task_id"
 
-    log_info "Creating worktree for task: $task_id"
+    # Capture all output (stdout and stderr) from the block
+    local output
+    output=$( {
+        log_info "Creating worktree for task: $task_id"
 
-    # Remove existing worktree if it exists
-    if [ -d "$worktree_path" ]; then
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-    fi
+        # Remove existing worktree if it exists
+        if [ -d "$worktree_path" ]; then
+            git worktree remove "$worktree_path" --force 2>/dev/null || true
+        fi
 
-    # Remove existing branch if it exists
-    git branch -D "$branch_name" 2>/dev/null || true
+        # Remove existing branch if it exists
+        git branch -D "$branch_name" 2>/dev/null || true
 
-    # Create new worktree
-    git worktree add "$worktree_path" -b "$branch_name"
+        # Create new worktree
+        git worktree add "$worktree_path" -b "$branch_name"
+    } 2>&1 )
 
+    # Print the captured output to the user's terminal (stderr)
+    echo -e "$output" >&2
+
+    # Return just the path on stdout
     echo "$worktree_path"
 }
 
@@ -521,19 +529,27 @@ create_worktree() {
     local branch_name="claude-task-$task_id"
     local worktree_path="$WORKTREE_DIR/$task_id"
 
-    log_info "Creating worktree for task: $task_id"
+    # Capture all output (stdout and stderr) from the block
+    local output
+    output=$( {
+        log_info "Creating worktree for task: $task_id"
 
-    # Remove existing worktree if it exists
-    if [ -d "$worktree_path" ]; then
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-    fi
+        # Remove existing worktree if it exists
+        if [ -d "$worktree_path" ]; then
+            git worktree remove "$worktree_path" --force 2>/dev/null || true
+        fi
 
-    # Remove existing branch if it exists
-    git branch -D "$branch_name" 2>/dev/null || true
+        # Remove existing branch if it exists
+        git branch -D "$branch_name" 2>/dev/null || true
 
-    # Create new worktree
-    git worktree add "$worktree_path" -b "$branch_name"
+        # Create new worktree
+        git worktree add "$worktree_path" -b "$branch_name"
+    } 2>&1 )
 
+    # Print the captured output to the user's terminal (stderr)
+    echo -e "$output" >&2
+
+    # Return just the path on stdout
     echo "$worktree_path"
 }
 
@@ -818,19 +834,27 @@ create_worktree() {
     local branch_name="codex-task-$task_id"
     local worktree_path="$WORKTREE_DIR/$task_id"
 
-    log_info "Creating worktree for task: $task_id"
+    # Capture all output (stdout and stderr) from the block
+    local output
+    output=$( {
+        log_info "Creating worktree for task: $task_id"
 
-    # Remove existing worktree if it exists
-    if [ -d "$worktree_path" ]; then
-        git worktree remove "$worktree_path" --force 2>/dev/null || true
-    fi
+        # Remove existing worktree if it exists
+        if [ -d "$worktree_path" ]; then
+            git worktree remove "$worktree_path" --force 2>/dev/null || true
+        fi
 
-    # Remove existing branch if it exists
-    git branch -D "$branch_name" 2>/dev/null || true
+        # Remove existing branch if it exists
+        git branch -D "$branch_name" 2>/dev/null || true
 
-    # Create new worktree
-    git worktree add "$worktree_path" -b "$branch_name"
+        # Create new worktree
+        git worktree add "$worktree_path" -b "$branch_name"
+    } 2>&1 )
 
+    # Print the captured output to the user's terminal (stderr)
+    echo -e "$output" >&2
+
+    # Return just the path on stdout
     echo "$worktree_path"
 }
 
