@@ -21,16 +21,20 @@
 ```bash
 # Prerequisites: Install gemini, claude, and codex CLI clients first
 
-# 1. Install core system
-curl -fsSL https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_global_installer.sh | bash
+# 1. Clone the repository (private repo)
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
 
-# 2. Install advanced commands (recommended)
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_advanced_commands.sh && chmod +x ai_advanced_commands.sh && ./ai_advanced_commands.sh
+# 2. Install core system
+./ai_global_installer.sh
 
-# 3. Install web dashboard (optional)
-wget https://raw.githubusercontent.com/envixo/ai_cli_management/main/ai_unified_management.sh && chmod +x ai_unified_management.sh && ./ai_unified_management.sh
+# 3. Install advanced commands (recommended)
+./ai_advanced_commands.sh
 
-# 4. Configure and start
+# 4. Install web dashboard (optional)
+./ai_unified_management.sh
+
+# 5. Configure and start
 ai-manager config          # Set up API keys
 mkdir my-project && cd my-project
 ai-manager init gemini     # Initialize project
@@ -52,6 +56,25 @@ which codex && codex --version      # OpenAI Codex CLI
 - Linux (Ubuntu, Manjaro, etc.)
 - 4GB RAM, 10GB disk space
 - Git 2.20+, Python 3.8+, Bash 4.0+
+- GitHub access for private repository
+
+### Repository Access (Private Repo)
+
+```bash
+# Clone the repository
+git clone https://github.com/envixo/ai_cli_management.git
+cd ai_cli_management
+
+# If you need authentication, use one of these methods:
+# Method 1: Personal Access Token
+git clone https://your-token@github.com/envixo/ai_cli_management.git
+
+# Method 2: SSH (if configured)
+git clone git@github.com:envixo/ai_cli_management.git
+
+# Method 3: GitHub CLI
+gh repo clone envixo/ai_cli_management
+```
 
 ### Installation Scripts (Run in Order)
 
@@ -198,6 +221,16 @@ ai-manager config
 
 ### Common Issues
 
+**Repository access denied:**
+```bash
+# Configure GitHub authentication
+git config --global user.name "Your Name"
+git config --global user.email "your@email.com"
+
+# Generate personal access token at: https://github.com/settings/tokens
+# Use token as password when prompted
+```
+
 **Commands not found:**
 ```bash
 source ~/.bashrc    # Reload shell
@@ -220,6 +253,11 @@ ai-dashboard restart   # Restart service
 ```bash
 ai-costs              # Check pricing
 ai-switch cost-optimal # Switch to Gemini
+```
+
+**Installation script permissions:**
+```bash
+chmod +x *.sh       # Make scripts executable
 ```
 
 ## File Structure
