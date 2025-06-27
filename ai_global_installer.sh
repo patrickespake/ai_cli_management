@@ -902,6 +902,9 @@ create_pull_request() {
 
     cd "$worktree_path"
 
+    # Refresh the git index to detect changes
+    git add -N .
+
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
