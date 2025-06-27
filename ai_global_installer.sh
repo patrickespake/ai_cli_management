@@ -311,6 +311,9 @@ create_pull_request() {
     local branch_name
     branch_name=$(git rev-parse --abbrev-ref HEAD)
 
+    # Refresh the git index to detect changes
+    git add -N .
+
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
         log_warn "No changes detected for task: $task_title"
@@ -610,6 +613,9 @@ create_pull_request() {
 
     local branch_name
     branch_name=$(git rev-parse --abbrev-ref HEAD)
+
+    # Refresh the git index to detect changes
+    git add -N .
 
     # Check if there are changes
     if git diff --quiet && git diff --cached --quiet; then
