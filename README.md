@@ -1,4 +1,4 @@
-# AI Parallel Systems
+# Parallel AI System with Codex, Gemini, and Claude Code Cli
 
 **Version 1.0 - Parallel AI System with Codex, Gemini, and Claude Code Cli**
 
