@@ -1,6 +1,6 @@
 # AI Parallel Systems
 
-**Version 1.0 - AI Development Platform**
+**Version 1.0 - Parallel AI System with Codex, Gemini, and Claude Code Cli**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/envixo/ai_cli_management)
