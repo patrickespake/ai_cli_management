@@ -47,7 +47,12 @@ ai-quick                   # Start using AI
 which gemini && gemini --version    # Google Gemini CLI
 which claude && claude --version    # Anthropic Claude CLI  
 which codex && codex --version      # OpenAI Codex CLI
+
+# Verify GitHub CLI is installed (for automatic pull requests)
+which gh && gh --version
 ```
+
+**Important:** The GitHub CLI (`gh`) is required for features like automatic pull request creation. Please ensure it is installed and configured correctly.
 
 **System Requirements:**
 - Linux (Ubuntu, Manjaro, etc.)
