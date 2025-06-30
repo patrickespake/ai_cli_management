@@ -1,7 +1,7 @@
 # AI Parallel Systems - Ubuntu 25.04 Installation Guide
 
-**Version 2.0 - English Edition (Existing Clients)**
-**Author:** Manus AI
+**Version 1.0 (Existing Clients)**
+**Author:** Patrick Espake <patrickespake@gmail.com>
 **Target:** Ubuntu 25.04 LTS (Debian-based)
 **Prerequisites:** codex, claude, and gemini CLI clients already installed
 
