@@ -1,6 +1,6 @@
 # AI Parallel Systems - Manjaro Linux Installation Guide
 
-**Version 2.0 - English Edition (Existing Clients)**
+**Version 1.0 (Existing Clients)**
 **Author:** Manus AI
 **Target:** Manjaro Linux (Arch-based)
 **Prerequisites:** codex, claude, and gemini CLI clients already installed

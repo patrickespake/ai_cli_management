@@ -1,6 +1,6 @@
 #!/bin/bash
 # ai_global_installer.sh - AI Parallel Systems Global Installer
-# Version 2.0 - English Edition (Fixed)
+# Version 1.0 (Fixed)
 # Assumes existing CLI clients: codex, claude, gemini
 
 set -euo pipefail
@@ -148,7 +148,7 @@ create_ai_wrappers() {
     sudo tee /usr/local/bin/ai-gemini << 'EOF'
 #!/bin/bash
 # ai-gemini - Gemini AI wrapper for parallel execution with worktree isolation
-# Version 2.0 - English Edition
+# Version 1.0
 
 set -euo pipefail
 
@@ -470,7 +470,7 @@ EOF
     sudo tee /usr/local/bin/ai-claude << 'EOF'
 #!/bin/bash
 # ai-claude - Claude AI wrapper for parallel execution with worktree isolation
-# Version 2.0 - English Edition
+# Version 1.0
 
 set -euo pipefail
 
@@ -800,7 +800,7 @@ EOF
     sudo tee /usr/local/bin/ai-codex << 'EOF'
 #!/bin/bash
 # ai-codex - Codex AI wrapper for parallel execution with worktree isolation
-# Version 2.0 - English Edition
+# Version 1.0
 
 set -euo pipefail
 
@@ -1139,14 +1139,14 @@ create_management_commands() {
     sudo tee /usr/local/bin/ai-manager << 'EOF'
 #!/bin/bash
 # ai-manager - Main AI Systems Manager
-# Version 2.0 - English Edition
+# Version 1.0
 
 CONFIG_DIR="$HOME/.config/ai-parallel"
 DATA_DIR="$HOME/.local/share/ai-parallel"
 
 show_help() {
     cat << 'HELP'
-AI Parallel Systems Manager - Version 2.0
+AI Parallel Systems Manager - Version 1.0
 
 USAGE:
   ai-manager <command> [options]
@@ -1412,7 +1412,7 @@ EOF
     sudo tee /usr/local/bin/ai-status << 'EOF'
 #!/bin/bash
 # ai-status - Quick status check
-# Version 2.0 - English Edition
+# Version 1.0
 
 case "${1:-}" in
     --quick|-q)
@@ -1435,7 +1435,7 @@ EOF
     sudo tee /usr/local/bin/ai-costs << 'EOF'
 #!/bin/bash
 # ai-costs - Cost analysis tool
-# Version 2.0 - English Edition
+# Version 1.0
 
 show_cost_analysis() {
     cat << 'COSTS'
@@ -1499,7 +1499,7 @@ configure_shell_completion() {
     # Configure bash completion
     sudo tee /etc/bash_completion.d/ai-systems << 'EOF'
 # Bash completion for AI Systems
-# Version 2.0 - English Edition
+# Version 1.0
 
 _ai_manager_complete() {
     local cur prev opts
@@ -1534,7 +1534,7 @@ EOF
 #compdef ai-manager ai-status ai-costs ai-gemini ai-claude ai-codex
 
 # Zsh completion for AI Systems
-# Version 2.0 - English Edition
+# Version 1.0
 
 _ai_manager() {
     local context state line
@@ -1676,7 +1676,7 @@ EOF
 main() {
     echo
     log_header "🤖 AI Parallel Systems - Global Installer"
-    log_header "Version 2.0 - English Edition"
+    log_header "Version 1.0"
     log_header "Assumes existing CLI clients: codex, claude, gemini"
     echo
 

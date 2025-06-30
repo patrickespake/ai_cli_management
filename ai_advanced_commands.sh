@@ -1,6 +1,6 @@
 #!/bin/bash
 # ai_advanced_commands.sh - Advanced AI Commands System
-# Version 2.1 - English Edition (Fixed for asdf/sudo)
+# Version 1.0 (Fixed for asdf/sudo)
 # Assumes existing CLI clients: codex, claude, gemini
 
 set -euo pipefail
@@ -46,7 +46,7 @@ create_ai_quick() {
     sudo tee /usr/local/bin/ai-quick > /dev/null << 'EOF'
 #!/bin/bash
 # ai-quick - Quick AI execution with Gemini (cost-optimized)
-# Version 2.0 - English Edition
+# Version 1.0
 
 PROJECT_ROOT="$(pwd)"
 TASKS_FILE="$PROJECT_ROOT/tasks.json"
@@ -77,7 +77,7 @@ create_ai_switch() {
     sudo tee /usr/local/bin/ai-switch > /dev/null << 'EOF'
 #!/bin/bash
 # ai-switch - Intelligent AI system selection
-# Version 2.0 - English Edition
+# Version 1.0
 
 show_help() {
     cat << 'HELP'
@@ -148,7 +148,7 @@ create_ai_logs() {
     sudo tee /usr/local/bin/ai-logs > /dev/null << 'EOF'
 #!/bin/bash
 # ai-logs - Centralized logging viewer
-# Version 2.0 - English Edition
+# Version 1.0
 
 PROJECT_ROOT="$(pwd)"
 LOG_DIR="$PROJECT_ROOT/.ai-logs"
@@ -432,7 +432,7 @@ EOF
     sudo tee /usr/local/bin/ai-dashboard > /dev/null << 'EOF'
 #!/bin/bash
 # ai-dashboard - Web dashboard controller
-# Version 2.0 - English Edition
+# Version 1.0
 
 show_help() {
     cat << 'HELP'
@@ -519,7 +519,7 @@ create_ai_backup() {
     sudo tee /usr/local/bin/ai-backup > /dev/null << 'EOF'
 #!/bin/bash
 # ai-backup - Backup and restore system
-# Version 2.0 - English Edition
+# Version 1.0
 
 CONFIG_DIR="$HOME/.config/ai-parallel"
 DATA_DIR="$HOME/.local/share/ai-parallel"
@@ -652,7 +652,7 @@ EOF
 main() {
     echo
     log_header "🔧 AI Advanced Commands System - Installer"
-    log_header "Version 2.1 - English Edition"
+    log_header "Version 1.0"
     echo
 
     # Check if running as root
