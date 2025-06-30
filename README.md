@@ -3,7 +3,7 @@
 **Version 1.0 - AI Development Platform**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-2.0-blue.svg)](https://github.com/envixo/ai_cli_management)
+[![Version](https://img.shields.io/badge/version-1.0-blue.svg)](https://github.com/envixo/ai_cli_management)
 [![Platform](https://img.shields.io/badge/platform-Linux-green.svg)](https://github.com/envixo/ai_cli_management)
 
 > **Orchestrate multiple AI systems (Gemini, Claude, Codex) with 85% cost savings**
@@ -45,7 +45,7 @@ ai-quick                   # Start using AI
 ```bash
 # Verify AI clients are installed
 which gemini && gemini --version    # Google Gemini CLI
-which claude && claude --version    # Anthropic Claude CLI  
+which claude && claude --version    # Anthropic Claude CLI
 which codex && codex --version      # OpenAI Codex CLI
 
 # Verify GitHub CLI is installed (for automatic pull requests)
@@ -128,9 +128,9 @@ cp tasks_example.json tasks.json
 # Edit tasks.json with your specific tasks
 
 # 3. Execute AI tasks in parallel
-ai-gemini                   # Execute all tasks with Gemini (85% cheaper)
-ai-claude                   # Execute all tasks with Claude (complex reasoning) 
-ai-codex                    # Execute all tasks with Codex (code optimization)
+ai-gemini                   # Execute all tasks with Gemini 2.5 Pro (best cost-benefit)
+ai-claude                   # Execute all tasks with Claude Sonnet 4 (balanced)
+ai-codex                    # Execute all tasks with OpenAI O3 (advanced reasoning)
 
 # 4. Monitor execution
 ai-status                   # Check system status
@@ -147,7 +147,7 @@ ai-dashboard open           # Open web interface
 ```bash
 ai-switch cost-optimal      # Use cheapest option (Gemini)
 ai-switch reasoning         # Use Claude for complex tasks
-ai-switch code-focused      # Use Codex for code tasks
+ai-switch code-focused      # Use O3 for advanced reasoning tasks
 ai-switch performance       # Use fastest option
 ```
 
@@ -167,18 +167,37 @@ ai-backup create            # Create backup
 ai-backup restore <name>    # Restore from backup
 ```
 
-## Cost Comparison
+## AI Models and Pricing
 
-| AI System | Price/1K tokens | Best For | Savings vs Others |
-|-----------|----------------|----------|-------------------|
-| **Gemini** | $0.0035 | General tasks, cost optimization | 85% cheaper |
-| Claude | $0.015 | Complex reasoning, analysis | Standard pricing |
-| Codex | $0.030 | Code optimization, debugging | Premium pricing |
+### Pricing Comparison - AI Models (June 2025)
 
-**Example Costs (1000 tasks):**
-- Gemini: ~$21
-- Claude: ~$90 
-- Codex: ~$180
+| Model | Company | Input (1M tokens) | Output (1M tokens) | Best For |
+|-------|---------|-------------------|-------------------|----------|
+| **Gemini 2.5 Pro** | Google | $1.25 | $10.00 | Best cost-benefit ratio |
+| **OpenAI O3** | OpenAI | $2.00 | $8.00 | Advanced reasoning (80% price reduction) |
+| **Claude Sonnet 4** | Anthropic | $3.00 | $15.00 | Balanced general tasks |
+
+### Key Features by Model
+
+**OpenAI O3:**
+- 80% price reduction in June 2025 (was $10.00/$40.00)
+- Advanced reasoning capabilities
+- Best value after price reduction
+
+**Claude Sonnet 4:**
+- Balanced model for general use
+- Excellent for coding and analysis
+- Free tier available with limits
+
+**Gemini 2.5 Pro:**
+- Best cost-effectiveness
+- Multimodal capabilities (text, image, audio, video)
+- Advanced reasoning model
+
+**Cost Analysis Example (1M tokens):**
+- Gemini 2.5 Pro: $11.25 total
+- OpenAI O3: $10.00 total
+- Claude Sonnet 4: $18.00 total
 
 ## Web Dashboard Features
 
@@ -260,7 +279,7 @@ git config --global user.email "your@email.com"
 source ~/.zshrc     # Reload shell
 hash -r            # Clear command cache
 
-# For Bash users  
+# For Bash users
 source ~/.bashrc    # Reload shell
 hash -r            # Clear command cache
 ```
