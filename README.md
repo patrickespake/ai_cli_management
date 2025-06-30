@@ -47,13 +47,18 @@ ai-quick                   # Start using AI
 which gemini && gemini --version    # Google Gemini CLI
 which claude && claude --version    # Anthropic Claude CLI  
 which codex && codex --version      # OpenAI Codex CLI
+
+# Verify GitHub CLI is installed (for automatic pull requests)
+which gh && gh --version
 ```
 
+**Important:** The GitHub CLI (`gh`) is required for features like automatic pull request creation. Please ensure it is installed and configured correctly.
+
 **System Requirements:**
-- Linux (Ubuntu, Manjaro, etc.)
-- 4GB RAM, 10GB disk space
-- Git 2.20+, Python 3.8+, Bash 4.0+
-- GitHub access for private repository
+- **Operating System**: The installation scripts have been tested on **Arch Linux (Manjaro)** and **Ubuntu**. Pull requests for other operating systems are welcome.
+- **Hardware**: 4GB RAM, 10GB disk space
+- **Software**: Git 2.20+, Python 3.8+, Bash 4.0+
+- **Other**: GitHub access for private repository
 
 ### Repository Access (Private Repo)
 
