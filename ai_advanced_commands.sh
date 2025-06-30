@@ -1,6 +1,6 @@
 #!/bin/bash
 # ai_advanced_commands.sh - Advanced AI Commands System
-# Version 2.0 - English Edition (Fixed)
+# Version 2.1 - English Edition (Fixed for asdf/sudo)
 # Assumes existing CLI clients: codex, claude, gemini
 
 set -euo pipefail
@@ -43,7 +43,7 @@ log_header() {
 create_ai_quick() {
     log_info "Creating ai-quick command..."
 
-    sudo tee /usr/local/bin/ai-quick << 'EOF'
+    sudo tee /usr/local/bin/ai-quick > /dev/null << 'EOF'
 #!/bin/bash
 # ai-quick - Quick AI execution with Gemini (cost-optimized)
 # Version 2.0 - English Edition
@@ -74,7 +74,7 @@ EOF
 create_ai_switch() {
     log_info "Creating ai-switch command..."
 
-    sudo tee /usr/local/bin/ai-switch << 'EOF'
+    sudo tee /usr/local/bin/ai-switch > /dev/null << 'EOF'
 #!/bin/bash
 # ai-switch - Intelligent AI system selection
 # Version 2.0 - English Edition
@@ -100,7 +100,7 @@ EXAMPLES:
 
 COST COMPARISON:
   🏆 Gemini: $0.0035/1K (RECOMMENDED)
-  ⚖️ Claude: $0.015/1K
+  ⚖️ Claude: $0.015/K
   🔧 Codex: $0.03/1K
 HELP
 }
@@ -145,7 +145,7 @@ EOF
 create_ai_logs() {
     log_info "Creating ai-logs command..."
 
-    sudo tee /usr/local/bin/ai-logs << 'EOF'
+    sudo tee /usr/local/bin/ai-logs > /dev/null << 'EOF'
 #!/bin/bash
 # ai-logs - Centralized logging viewer
 # Version 2.0 - English Edition
@@ -243,11 +243,60 @@ EOF
 create_ai_dashboard() {
     log_info "Creating ai-dashboard command..."
 
+    local REAL_NODE_PATH=""
+    local REAL_NPM_PATH=""
+
+    # Check for asdf first
+    if command -v asdf &> /dev/null; then
+        log_info "asdf detected. Using asdf's Node.js installation."
+        
+        # Source asdf.sh to ensure asdf functions are available
+        ASDF_DIR=${ASDF_DIR:-$HOME/.asdf}
+        if [ -f "$ASDF_DIR/asdf.sh" ]; then
+            # shellcheck source=/dev/null
+            . "$ASDF_DIR/asdf.sh"
+        else
+            log_error "asdf.sh not found in $ASDF_DIR. Cannot proceed."
+            return 1
+        fi
+        
+        if ! asdf which nodejs &> /dev/null; then
+            log_warn "No Node.js version set by asdf. Skipping dashboard."
+            log_warn "Please run 'asdf install nodejs latest && asdf global nodejs latest'"
+            return
+        fi
+
+        ASDF_NODEJS_DIR=$(asdf where nodejs)
+        
+        if [ -z "$ASDF_NODEJS_DIR" ]; then
+            log_error "Could not determine asdf Node.js install path. Please run 'asdf where nodejs'."
+            return 1
+        fi
+
+        REAL_NODE_PATH="$ASDF_NODEJS_DIR/bin/node"
+        REAL_NPM_PATH="$ASDF_NODEJS_DIR/bin/npm"
+    # Fallback to checking global path
+    elif command -v npm &> /dev/null && command -v node &> /dev/null; then
+        log_info "Using Node.js installation found in PATH."
+        REAL_NODE_PATH=$(which node)
+        REAL_NPM_PATH=$(which npm)
+    else
+        log_warn "Node.js/npm not found. Skipping ai-dashboard installation."
+        log_warn "Please install Node.js (v14+) or install it via asdf."
+        return
+    fi
+
+    if [ ! -x "$REAL_NPM_PATH" ] || [ ! -x "$REAL_NODE_PATH" ]; then
+        log_error "Could not find a valid Node.js/npm executable."
+        log_error "Checked paths: Node: '$REAL_NODE_PATH', npm: '$REAL_NPM_PATH'"
+        return 1
+    fi
+
     # Create dashboard directory
     sudo mkdir -p /opt/ai-parallel-systems/dashboard
     
-    # Create package.json for dashboard dependencies
-    sudo tee /opt/ai-parallel-systems/dashboard/package.json << 'EOF'
+    # Create dashboard files
+    sudo tee /opt/ai-parallel-systems/dashboard/package.json > /dev/null << 'EOF'
 {
   "name": "ai-dashboard",
   "version": "1.0.0",
@@ -259,41 +308,29 @@ create_ai_dashboard() {
   }
 }
 EOF
-
-    # Create dashboard server file
-    sudo tee /opt/ai-parallel-systems/dashboard/server.js << 'EOF'
+    sudo tee /opt/ai-parallel-systems/dashboard/server.js > /dev/null << 'EOF'
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
-
 app.use(express.json());
 app.use(express.static(__dirname));
-
-// API endpoint for scripts to post updates
 app.post('/api/update', (req, res) => {
     const { taskId, status, title, pr_url, message } = req.body;
     io.emit('task_update', { taskId, status, title, pr_url, message });
     res.status(200).send({ message: 'Update received' });
 });
-
 io.on('connection', (socket) => {
     console.log('Dashboard client connected');
-    socket.on('disconnect', () => {
-        console.log('Dashboard client disconnected');
-    });
+    socket.on('disconnect', () => console.log('Dashboard client disconnected'));
 });
-
 const PORT = 8081;
 server.listen(PORT, () => console.log(`Dashboard server listening on port ${PORT}`));
 EOF
-
-    # Create dashboard index.html
-    sudo tee /opt/ai-parallel-systems/dashboard/index.html << 'EOF'
+    sudo tee /opt/ai-parallel-systems/dashboard/index.html > /dev/null << 'EOF'
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -320,36 +357,25 @@ EOF
     </style>
 </head>
 <body>
-    <header>
-        <h1>AI Parallel Systems Dashboard</h1>
-        <div id="status-indicator">Connecting...</div>
-    </header>
-    <main>
-        <div id="task-container"></div>
-    </main>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="dashboard.js"></script>
+    <header><h1>AI Parallel Systems Dashboard</h1><div id="status-indicator">Connecting...</div></header>
+    <main><div id="task-container"></div></main>
+    <script src="/socket.io/socket.io.js"></script><script src="dashboard.js"></script>
 </body>
 </html>
 EOF
-
-    # Create dashboard client-side JS
-    sudo tee /opt/ai-parallel-systems/dashboard/dashboard.js << 'EOF'
+    sudo tee /opt/ai-parallel-systems/dashboard/dashboard.js > /dev/null << 'EOF'
 document.addEventListener('DOMContentLoaded', () => {
     const socket = io();
     const statusIndicator = document.getElementById('status-indicator');
     const taskContainer = document.getElementById('task-container');
-
     socket.on('connect', () => {
         statusIndicator.textContent = 'Connected';
         statusIndicator.className = 'status-connected';
     });
-
     socket.on('disconnect', () => {
         statusIndicator.textContent = 'Disconnected';
         statusIndicator.className = 'status-disconnected';
     });
-
     socket.on('task_update', (data) => {
         let card = document.getElementById(`task-${data.taskId}`);
         if (!card) {
@@ -358,10 +384,8 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'task-card';
             taskContainer.appendChild(card);
         }
-
         let statusHtml = `<span class="task-status status-${data.status.toLowerCase()}">${data.status}</span>`;
         let prLinkHtml = data.pr_url ? `<a href="${data.pr_url}" target="_blank" class="pr-link">View Pull Request</a>` : '';
-
         card.innerHTML = `
             <h3>${data.title || data.taskId}</h3>
             <p><strong>ID:</strong> ${data.taskId}</p>
@@ -375,29 +399,37 @@ EOF
 
     # Install dashboard dependencies
     log_info "Installing dashboard dependencies..."
-    sudo npm install --prefix /opt/ai-parallel-systems/dashboard
+    sudo "$REAL_NPM_PATH" install --prefix /opt/ai-parallel-systems/dashboard
 
-    # Create systemd service file
-    log_info "Creating systemd service for ai-dashboard..."
-    sudo tee /etc/systemd/user/ai-dashboard.service << 'EOF'
+    # Create systemd USER service file
+    log_info "Creating systemd user service for ai-dashboard..."
+    local service_dir="$HOME/.config/systemd/user"
+    mkdir -p "$service_dir"
+    
+    # Use a variable to hold the content and then pipe to tee
+    # This allows variable expansion for REAL_NODE_PATH
+    SERVICE_FILE_CONTENT=$(cat <<EOF
 [Unit]
 Description=AI Parallel Systems Web Dashboard
 After=network.target
 
 [Service]
-ExecStart=/usr/bin/node /opt/ai-parallel-systems/dashboard/server.js
+ExecStart=${REAL_NODE_PATH} /opt/ai-parallel-systems/dashboard/server.js
 Restart=always
 WorkingDirectory=/opt/ai-parallel-systems/dashboard
 
 [Install]
 WantedBy=default.target
 EOF
+)
+    echo "$SERVICE_FILE_CONTENT" > "$service_dir/ai-dashboard.service"
 
-    # Enable the service
-    systemctl --user enable ai-dashboard.service
+    # Reload systemd daemon and enable the service
+    systemctl --user daemon-reload
+    systemctl --user enable ai-dashboard.service > /dev/null
     log_success "ai-dashboard systemd service created and enabled"
 
-    sudo tee /usr/local/bin/ai-dashboard << 'EOF'
+    sudo tee /usr/local/bin/ai-dashboard > /dev/null << 'EOF'
 #!/bin/bash
 # ai-dashboard - Web dashboard controller
 # Version 2.0 - English Edition
@@ -428,6 +460,13 @@ HELP
 case "${1:-open}" in
     open)
         echo "🌐 Opening AI Dashboard..."
+        if systemctl --user is-active --quiet ai-dashboard.service; then
+            : # Service is running
+        else
+            echo "Dashboard service is not running. Starting it now..."
+            systemctl --user start ai-dashboard.service
+            sleep 1 # Give it a moment to start
+        fi
         if command -v xdg-open >/dev/null 2>&1; then
             xdg-open "http://localhost:8081"
         elif command -v open >/dev/null 2>&1; then
@@ -439,29 +478,24 @@ case "${1:-open}" in
         ;;
     start)
         echo "🚀 Starting AI Dashboard service..."
-        if systemctl --user is-active ai-dashboard >/dev/null 2>&1; then
+        if systemctl --user is-active --quiet ai-dashboard.service; then
             echo "✅ Dashboard is already running"
         else
-            systemctl --user start ai-dashboard
+            systemctl --user start ai-dashboard.service
         fi
         ;;
     stop)
         echo "🛑 Stopping AI Dashboard service..."
-        systemctl --user stop ai-dashboard
+        systemctl --user stop ai-dashboard.service
         ;;
     status)
         echo "📊 AI Dashboard Status"
         echo "====================="
-        if systemctl --user is-active ai-dashboard >/dev/null 2>&1; then
-            echo "✅ Service: Running"
-            echo "🌐 URL: http://localhost:8081"
-        else
-            echo "❌ Service: Not running"
-        fi
+        systemctl --user status ai-dashboard.service
         ;;
     restart)
         echo "🔄 Restarting AI Dashboard service..."
-        systemctl --user restart ai-dashboard
+        systemctl --user restart ai-dashboard.service
         ;;
     help|--help|-h)
         show_help
@@ -482,7 +516,7 @@ EOF
 create_ai_backup() {
     log_info "Creating ai-backup command..."
 
-    sudo tee /usr/local/bin/ai-backup << 'EOF'
+    sudo tee /usr/local/bin/ai-backup > /dev/null << 'EOF'
 #!/bin/bash
 # ai-backup - Backup and restore system
 # Version 2.0 - English Edition
@@ -555,7 +589,7 @@ restore_backup() {
     if [ ! -f "$backup_file" ]; then
         echo "❌ Backup not found: $backup_file"
         exit 1
-    fi
+    }
 
     echo "🔄 Restoring backup: $backup_name"
     echo "⚠️ This will overwrite current configuration"
@@ -618,7 +652,7 @@ EOF
 main() {
     echo
     log_header "🔧 AI Advanced Commands System - Installer"
-    log_header "Version 2.0 - English Edition"
+    log_header "Version 2.1 - English Edition"
     echo
 
     # Check if running as root
@@ -666,3 +700,4 @@ main() {
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     main "$@"
 fi
+

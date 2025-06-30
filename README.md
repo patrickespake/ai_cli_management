@@ -57,7 +57,7 @@ which gh && gh --version
 **System Requirements:**
 - **Operating System**: The installation scripts have been tested on **Arch Linux (Manjaro)** and **Ubuntu**. Pull requests for other operating systems are welcome.
 - **Hardware**: 4GB RAM, 10GB disk space
-- **Software**: Git 2.20+, Python 3.8+, Bash 4.0+
+- **Software**: Git 2.20+, Python 3.8+, Bash 4.0+, Node.js 14+ (for `ai-dashboard`)
 - **Other**: GitHub access for private repository
 
 ### Repository Access (Private Repo)
