@@ -440,7 +440,7 @@ main() {
         done
 
         # Start new task in background
-        execute_task "$task_data" &
+        execute_task "$task_data" < /dev/null &
         local pid=$!
         pids+=("$pid")
         # Increment running_jobs safely
@@ -448,7 +448,7 @@ main() {
 
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done < <(echo "$tasks")
+    done <<< "$tasks"
 
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
@@ -771,14 +771,14 @@ main() {
         done
 
         # Start new task in background
-        execute_task "$task_data" &
+        execute_task "$task_data" < /dev/null &
         local pid=$!
         pids+=("$pid")
         running_jobs=$(( running_jobs + 1 ))
 
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done < <(echo "$tasks")
+    done <<< "$tasks"
 
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
@@ -1100,14 +1100,14 @@ main() {
         done
 
         # Start new task in background
-        execute_task "$task_data" &
+        execute_task "$task_data" < /dev/null &
         local pid=$!
         pids+=("$pid")
         running_jobs=$(( running_jobs + 1 ))
 
         log_info "Started task (PID: $pid), running jobs: $running_jobs"
         sleep 1
-    done < <(echo "$tasks")
+    done <<< "$tasks"
 
     # Wait for all remaining jobs
     log_info "Waiting for all tasks to complete..."
